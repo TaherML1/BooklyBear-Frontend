@@ -11,7 +11,6 @@ class Book {
   final String? publisher;
   final List<String> categories;
 
-
   Book({
     required this.id,
     required this.isbn,
@@ -26,23 +25,27 @@ class Book {
     required this.categories,
   });
 
-  // Factory constructor to create a Book from JSON
-  // Updated to match your backend entity
+  // Null-safe: uses fallback values for any missing or null fields.
+  // Necessary because Typesense search documents may be missing some fields.
   factory Book.fromJson(Map<String, dynamic> json) {
     return Book(
-      id: json['id'] as String,
-      isbn: json['isbn'] as String,
-      title: json['title'] as String,
-      author: json['author'] as String,
-      description: json['description'] as String?,
-      coverImageUrl: json['coverImageUrl'] as String,
-      pageCount: json['pageCount'] as int,
-      publishedDate: json['publishedDate'] != null 
-          ? DateTime.parse(json['publishedDate']) 
+      id: json['id']?.toString() ?? '',
+      isbn: json['isbn']?.toString() ?? '',
+      title: json['title']?.toString() ?? 'Unknown Title',
+      author: json['author']?.toString() ?? 'Unknown Author',
+      description: json['description']?.toString(),
+      coverImageUrl: json['coverImageUrl']?.toString() ?? '',
+      pageCount: (json['pageCount'] as num?)?.toInt() ?? 0,
+      publishedDate: json['publishedDate'] != null
+          ? DateTime.tryParse(json['publishedDate'].toString())
           : null,
-      authors: (json['authors'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
-      publisher: json['publisher'] as String?,
-      categories: (json['categories'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+      authors: (json['authors'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+      publisher: json['publisher']?.toString(),
+      categories: (json['categories'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
     );
   }
 }

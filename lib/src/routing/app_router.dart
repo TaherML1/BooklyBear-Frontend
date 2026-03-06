@@ -8,26 +8,35 @@ import '../screens/login_screen.dart';
 import '../screens/signup_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/search_screen.dart'; // <-- 1. IMPORT
-import '../screens/book_details_screen.dart'; // <-- 2. IMPORT
+import '../screens/book_details_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/main_scaffold.dart';
+import '../screens/library_screen.dart';
+import '../screens/groups_screen.dart';
+
+// Key for the root navigator (the one that handles full-screen pushes)
+final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 // We turn GoRouter into a Provider so it can read other providers
 final goRouterProvider = Provider<GoRouter>((ref) {
   // Watch the auth state
   final authState = ref.watch(authStateProvider);
 
   return GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
-    
+
     // This function runs on every navigation change
     redirect: (BuildContext context, GoRouterState state) {
-      
       // If we are loading, show the splash screen
       if (authState == AuthState.loading) {
         return '/splash';
       }
 
-      final isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/signup';
-      
+      final isLoggingIn =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/signup';
+
       // If we are NOT authenticated...
       if (authState == AuthState.unauthenticated) {
         // ...and trying to go anywhere *but* login/signup, redirect to login.
@@ -41,44 +50,81 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return '/home';
         }
       }
-      
+
       // No redirect needed
-      return null; 
+      return null;
     },
     routes: [
       GoRoute(
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-
-      // --- 3. ADD NEW ROUTES BELOW ---
-      GoRoute(
-        path: '/search',
-        builder: (context, state) => const SearchScreen(),
-      ),
-      GoRoute(
-        path: '/book/:isbn', // We pass the isbn as a URL parameter
+        path: '/book/:isbn', // Full screen push outside the shell
+        parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
-          // Extract the isbn from the URL
           final isbn = state.pathParameters['isbn']!;
           return BookDetailsScreen(isbn: isbn);
         },
       ),
-       GoRoute(
-        path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
+
+      // --- StatefulShellRoute for BottomNavigationBar ---
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainScaffold(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 0: Home
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          // Branch 1: Discover / Search
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/search',
+                builder: (context, state) => const SearchScreen(),
+              ),
+            ],
+          ),
+          // Branch 2: Library
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/library',
+                builder: (context, state) => const LibraryScreen(),
+              ),
+            ],
+          ),
+          // Branch 3: Groups
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/groups',
+                builder: (context, state) => const GroupsScreen(),
+              ),
+            ],
+          ),
+          // Branch 4: Profile
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                builder: (context, state) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );
