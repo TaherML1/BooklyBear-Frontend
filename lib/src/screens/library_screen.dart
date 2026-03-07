@@ -188,6 +188,25 @@ class _BookCard extends StatelessWidget {
                               theme.colorScheme.surfaceContainerHighest,
                         ),
                       ),
+                      const SizedBox(height: 10),
+                      // ── Focus Timer Button ──────────────────────────────
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => context.push(
+                            '/timer/${userBook.id}?title=${Uri.encodeComponent(book.title)}',
+                          ),
+                          icon: const Icon(Icons.timer_outlined, size: 16),
+                          label: const Text('Focus Timer'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(0, 34),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            textStyle: const TextStyle(fontSize: 13),
+                            backgroundColor: const Color(0xFF7B61FF).withValues(alpha: 0.15),
+                            foregroundColor: const Color(0xFF7B61FF),
+                          ),
+                        ),
+                      ),
                     ],
 
                     // --- Rating Section (Finished only) ---

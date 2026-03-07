@@ -11,12 +11,23 @@ class ProfileRepository {
   /// Fetches the logged-in user's profile data
   Future<User> getMyProfile() async {
     try {
-      // Assumes your backend has an endpoint that uses the token
-      // to identify the user
-      final response = await _dio.get('/user/me'); 
+      final response = await _dio.get('/user/me');
       return User.fromJson(response.data);
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'Failed to load profile';
+    }
+  }
+
+  /// Updates display name and/or bio
+  Future<User> updateMyProfile({String? displayName, String? bio}) async {
+    try {
+      final response = await _dio.put('/user/me', data: {
+        if (displayName != null) 'displayName': displayName,
+        if (bio != null) 'bio': bio,
+      });
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to update profile';
     }
   }
 }

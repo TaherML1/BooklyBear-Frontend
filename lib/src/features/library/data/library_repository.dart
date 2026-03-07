@@ -50,6 +50,26 @@ class LibraryRepository {
       throw e.response?.data['message'] ?? 'Failed to update library entry';
     }
   }
+
+  /// POST /api/library/:userBookId/sessions — log a reading session
+  /// This triggers XP + streak increment on the backend.
+  Future<void> logReadingSession({
+    required String userBookId,
+    required int pagesRead,
+    required int minutesSpent,
+  }) async {
+    try {
+      await _dio.post(
+        '/library/$userBookId/sessions',
+        data: {
+          'pagesRead': pagesRead,
+          'minutesSpent': minutesSpent,
+        },
+      );
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to log reading session';
+    }
+  }
 }
 
 final libraryRepositoryProvider = Provider<LibraryRepository>((ref) {

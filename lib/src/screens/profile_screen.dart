@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/user/data/profile_repository.dart';
 import '../features/user/data/stats_repository.dart';
@@ -162,7 +163,10 @@ class ProfileScreen extends ConsumerWidget {
                         color: Colors.white,
                       ),
                       onPressed: () {
-                        /* TODO: Edit profile */
+                        context.go('/profile/edit', extra: {
+                          'displayName': user.displayName,
+                          'bio': user.bio,
+                        });
                       },
                     ),
                   ],

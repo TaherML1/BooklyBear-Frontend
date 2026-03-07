@@ -7,12 +7,14 @@ import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/signup_screen.dart';
 import '../screens/splash_screen.dart';
-import '../screens/search_screen.dart'; // <-- 1. IMPORT
+import '../screens/search_screen.dart';
 import '../screens/book_details_screen.dart';
 import '../screens/profile_screen.dart';
+import '../screens/edit_profile_screen.dart';
 import '../screens/main_scaffold.dart';
 import '../screens/library_screen.dart';
 import '../screens/groups_screen.dart';
+import '../screens/focus_timer_screen.dart';
 
 // Key for the root navigator (the one that handles full-screen pushes)
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -72,6 +74,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           return BookDetailsScreen(isbn: isbn);
         },
       ),
+      GoRoute(
+        path: '/timer/:userBookId', // Full-screen focus timer outside the shell
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) {
+          final userBookId = state.pathParameters['userBookId']!;
+          final bookTitle = state.uri.queryParameters['title'] ?? 'Your Book';
+          return FocusTimerScreen(
+            userBookId: userBookId,
+            bookTitle: bookTitle,
+          );
+        },
+      ),
 
       // --- StatefulShellRoute for BottomNavigationBar ---
       StatefulShellRoute.indexedStack(
@@ -121,6 +135,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) {
+                      final extra = state.extra as Map<String, dynamic>?;
+                      return EditProfileScreen(
+                        initialDisplayName: extra?['displayName'] ?? '',
+                        initialBio: extra?['bio'],
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

@@ -10,6 +10,9 @@ class Book {
   final List<String> authors;
   final String? publisher;
   final List<String> categories;
+  // Google Books community rating
+  final double? averageRating;
+  final int? ratingsCount;
 
   Book({
     required this.id,
@@ -23,6 +26,8 @@ class Book {
     required this.authors,
     this.publisher,
     required this.categories,
+    this.averageRating,
+    this.ratingsCount,
   });
 
   // Null-safe: uses fallback values for any missing or null fields.
@@ -46,6 +51,8 @@ class Book {
       categories: (json['categories'] as List<dynamic>? ?? [])
           .map((e) => e.toString())
           .toList(),
+      averageRating: (json['averageRating'] as num?)?.toDouble(),
+      ratingsCount: (json['ratingsCount'] as num?)?.toInt(),
     );
   }
 }
