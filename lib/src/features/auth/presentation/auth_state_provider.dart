@@ -29,12 +29,16 @@ class AuthStateNotifier extends StateNotifier<AuthState> {
 
   // Called by AuthController on successful login
   void onLogin() {
-    state = AuthState.authenticated;
+    if (state != AuthState.authenticated) {
+      state = AuthState.authenticated;
+    }
   }
 
   // Called by AuthController on logout
   void onLogout() {
-    state = AuthState.unauthenticated;
+    if (state != AuthState.unauthenticated) {
+      state = AuthState.unauthenticated;
+    }
   }
 }
 

@@ -21,15 +21,18 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 // We turn GoRouter into a Provider so it can read other providers
 final goRouterProvider = Provider<GoRouter>((ref) {
-  // Watch the auth state
-  final authState = ref.watch(authStateProvider);
+  final refreshListenable = _AuthRefreshListenable(ref);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/splash',
+    refreshListenable: refreshListenable,
 
-    // This function runs on every navigation change
+    // This function runs on every navigation change OR refreshListenable notification
     redirect: (BuildContext context, GoRouterState state) {
+      // READ the auth state (don't watch here to avoid recreating GoRouter)
+      final authState = ref.read(authStateProvider);
+      
       // If we are loading, show the splash screen
       if (authState == AuthState.loading) {
         return '/splash';
@@ -156,3 +159,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+class _AuthRefreshListenable extends ChangeNotifier {
+  _AuthRefreshListenable(Ref ref) {
+    ref.listen(authStateProvider, (_, __) => notifyListeners());
+  }
+}

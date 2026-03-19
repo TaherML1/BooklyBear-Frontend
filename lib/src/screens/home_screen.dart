@@ -6,6 +6,11 @@ import '../features/gamification/presentation/gamification_providers.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
 
+import '../features/books/presentation/books_for_you_section.dart';
+import '../features/social/presentation/social_feed_section.dart';
+
+import '../utils/app_logger.dart';
+
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -34,70 +39,42 @@ class HomeScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16.0),
           children: [
             // ── Gamification Hero ─────────────────────────────────────────
-            _buildGamificationHero(ref),
-            const SizedBox(height: 20),
+            _buildGamificationHero(context, ref),
+            const SizedBox(height: 48),
+
+            // ── AI Recommendations ────────────────────────────────────────
+            const BooksForYouSection(),
+            const SizedBox(height: 48),
 
             // ── Currently Reading ─────────────────────────────────────────
-            _CurrentlyReadingSection(ref: ref),
-            const SizedBox(height: 20),
+            const _CurrentlyReadingSection(),
+            const SizedBox(height: 48),
 
-            // ── Feed / Empty State ────────────────────────────────────────
-            Center(
-              child: Column(
-                children: [
-                  const Icon(Icons.library_books, size: 64, color: Colors.grey),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Your Feed is Empty',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text('Discover books to start your journey!'),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () => context.push('/search'),
-                    icon: const Icon(Icons.search),
-                    label: const Text('Discover Books'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // ── Feed (Social + Discovery) ─────────────────────────────────
+            const SocialFeedSection(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGamificationHero(WidgetRef ref) {
+  Widget _buildGamificationHero(BuildContext context, WidgetRef ref) {
     final gamificationState = ref.watch(gamificationStatusProvider);
 
     return gamificationState.when(
       data: (status) {
+        AppLogger.info(
+          '[HomeScreen] Gamification loaded — Level ${status.level}, Streak ${status.streak}',
+        );
         final progressPercent = status.nextLevelXp > 0
             ? (status.xpProgress / status.nextLevelXp).clamp(0.0, 1.0)
             : 0.0;
 
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.orange.shade400, Colors.deepOrange.shade600],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.orange.withValues(alpha: 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -107,19 +84,22 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // Level Badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
+                      color: Theme.of(context).colorScheme.onPrimary.withAlpha(25),
+                      borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.star, color: Colors.white, size: 20),
+                        Icon(Icons.star, color: Theme.of(context).colorScheme.onPrimary, size: 20),
                         const SizedBox(width: 6),
                         Text(
                           'Level ${status.level}',
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -130,12 +110,16 @@ class HomeScreen extends ConsumerWidget {
                   // Streak
                   Row(
                     children: [
-                      const Icon(Icons.local_fire_department, color: Colors.yellow, size: 28),
+                      Icon(
+                        Icons.local_fire_department,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        size: 28,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${status.streak} Days',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
                         ),
@@ -148,54 +132,78 @@ class HomeScreen extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('XP Progress',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-                  Text('${status.xpProgress} / ${status.nextLevelXp} XP',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  Text(
+                    'XP Progress',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    '${status.xpProgress} / ${status.nextLevelXp} XP',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: progressPercent,
-                  backgroundColor: Colors.white.withValues(alpha: 0.3),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  minHeight: 10,
-                ),
+              LinearProgressIndicator(
+                value: progressPercent,
+                backgroundColor: Theme.of(context).colorScheme.onPrimary.withAlpha(50),
+                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+                minHeight: 2,
               ),
             ],
           ),
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Card(
-        color: Colors.red.shade100,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text('Failed to load stats: $err'),
-        ),
-      ),
+      loading: () {
+        AppLogger.info('[HomeScreen] Gamification loading...');
+        return const Center(child: CircularProgressIndicator());
+      },
+      error: (err, _) {
+        AppLogger.error('[HomeScreen] Gamification error: $err');
+        return Card(
+          color: Colors.red.shade100,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text('Failed to load stats: $err'),
+          ),
+        );
+      },
     );
   }
 }
 
 // ─── Currently Reading Section ────────────────────────────────────────────────
-class _CurrentlyReadingSection extends StatelessWidget {
-  final WidgetRef ref;
-  const _CurrentlyReadingSection({required this.ref});
+class _CurrentlyReadingSection extends ConsumerWidget {
+  const _CurrentlyReadingSection();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final libraryAsync = ref.watch(libraryProvider);
 
     return libraryAsync.when(
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      loading: () {
+        AppLogger.info('[HomeScreen] Library loading...');
+        return const SizedBox.shrink();
+      },
+      error: (err, __) {
+        AppLogger.error('[HomeScreen] Library error: $err');
+        return const SizedBox.shrink();
+      },
       data: (books) {
+        AppLogger.info(
+          '[HomeScreen] Library loaded — ${books.length} total books',
+        );
         final reading = books
             .where((b) => b.status == ReadingStatus.reading)
             .toList();
+        AppLogger.info(
+          '[HomeScreen] Currently reading: ${reading.length} books',
+        );
 
         if (reading.isEmpty) return const SizedBox.shrink();
 
@@ -204,13 +212,12 @@ class _CurrentlyReadingSection extends StatelessWidget {
           children: [
             Text(
               'Continue Reading',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 10),
-            ...reading.map((userBook) => _CurrentlyReadingCard(userBook: userBook)),
+            ...reading.map(
+              (userBook) => _CurrentlyReadingCard(userBook: userBook),
+            ),
           ],
         );
       },
@@ -230,9 +237,7 @@ class _CurrentlyReadingCard extends StatelessWidget {
     final percent = (userBook.progressPercent * 100).toStringAsFixed(0);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: () => context.push('/book/${book.isbn}'),
         borderRadius: BorderRadius.circular(16),
@@ -270,16 +275,18 @@ class _CurrentlyReadingCard extends StatelessWidget {
                       book.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       book.author,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Row(
@@ -298,16 +305,14 @@ class _CurrentlyReadingCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 5),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: userBook.progressPercent,
-                        minHeight: 6,
-                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                      ),
+                    const SizedBox(height: 8),
+                    LinearProgressIndicator(
+                      value: userBook.progressPercent,
+                      minHeight: 2,
+                      backgroundColor: theme.colorScheme.outlineVariant.withAlpha(50),
+                      color: theme.colorScheme.primary,
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 16),
 
                     // ── Focus Timer Button ──────────────────────────────────
                     SizedBox(
@@ -319,10 +324,12 @@ class _CurrentlyReadingCard extends StatelessWidget {
                         icon: const Icon(Icons.timer_outlined, size: 16),
                         label: const Text('Start Focus Timer'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF7B61FF),
+                          backgroundColor: theme.colorScheme.primaryContainer,
+                          foregroundColor: theme.colorScheme.onPrimary,
                           minimumSize: const Size(0, 36),
                           padding: const EdgeInsets.symmetric(horizontal: 12),
                           textStyle: const TextStyle(fontSize: 13),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
                         ),
                       ),
                     ),

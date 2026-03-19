@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:booklybear/src/routing/app_router.dart';
+import 'package:booklybear/src/theme/app_theme.dart';
 
 void main() {
   runApp(const ProviderScope(child: BooklyBearApp()));
@@ -23,31 +24,7 @@ class BooklyBearApp extends ConsumerWidget {
       routerConfig: router, // Use the provider
 
       // Material 3 Theme
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.brown, // Bear color! 🐻
-          brightness: Brightness.light,
-        ),
-        useMaterial3: true,
-        
-        // Nice input styling globally
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.grey[50],
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.brown, width: 2),
-          ),
-        ),
-      ),
+      theme: AppTheme.themeData,
     );
   }
 }

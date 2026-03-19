@@ -33,6 +33,29 @@ class Book {
   // Null-safe: uses fallback values for any missing or null fields.
   // Necessary because Typesense search documents may be missing some fields.
   factory Book.fromJson(Map<String, dynamic> json) {
+    // Helper to parse double safely
+    double? parseDouble(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toDouble();
+      if (value is String) return double.tryParse(value);
+      return null;
+    }
+
+    // Helper to parse int safely
+    int? parseInt(dynamic value) {
+      if (value == null) return null;
+      if (value is num) return value.toInt();
+      if (value is String) return int.tryParse(value);
+      return null;
+    }
+
+    // Helper to parse List of Strings safely
+    List<String> parseStringList(dynamic value) {
+      if (value == null) return [];
+      if (value is List) return value.map((e) => e?.toString() ?? '').toList();
+      return [value.toString()];
+    }
+
     return Book(
       id: json['id']?.toString() ?? '',
       isbn: json['isbn']?.toString() ?? '',
@@ -40,19 +63,15 @@ class Book {
       author: json['author']?.toString() ?? 'Unknown Author',
       description: json['description']?.toString(),
       coverImageUrl: json['coverImageUrl']?.toString() ?? '',
-      pageCount: (json['pageCount'] as num?)?.toInt() ?? 0,
+      pageCount: parseInt(json['pageCount']) ?? 0,
       publishedDate: json['publishedDate'] != null
           ? DateTime.tryParse(json['publishedDate'].toString())
           : null,
-      authors: (json['authors'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
+      authors: parseStringList(json['authors']),
       publisher: json['publisher']?.toString(),
-      categories: (json['categories'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
-      averageRating: (json['averageRating'] as num?)?.toDouble(),
-      ratingsCount: (json['ratingsCount'] as num?)?.toInt(),
+      categories: parseStringList(json['categories']),
+      averageRating: parseDouble(json['averageRating']),
+      ratingsCount: parseInt(json['ratingsCount']),
     );
   }
 }

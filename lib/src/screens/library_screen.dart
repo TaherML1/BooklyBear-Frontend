@@ -13,7 +13,7 @@ class LibraryScreen extends ConsumerWidget {
       length: 3,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('My Library'),
+          title: Text('My Library', style: Theme.of(context).textTheme.headlineMedium),
           bottom: const TabBar(
             tabs: [
               Tab(icon: Icon(Icons.book), text: 'Reading'),
@@ -111,8 +111,8 @@ class _BookCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
       child: InkWell(
         onTap: () => context.push('/book/${book.isbn}'),
         child: Padding(
@@ -260,7 +260,6 @@ class _StatusChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Text(
         label,

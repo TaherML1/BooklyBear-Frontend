@@ -57,15 +57,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.menu_book_rounded, size: 80, color: Colors.brown),
-                const SizedBox(height: 20),
+                Icon(Icons.menu_book_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(height: 24),
                 Text(
                   'Welcome Back!',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.brown[800],
-                      ),
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 const SizedBox(height: 40),
                 
@@ -74,7 +71,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Please enter your email';
@@ -90,7 +86,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Password',
                     prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (value) {
                     if (value == null || value.length < 6) return 'Password must be at least 6 characters';
@@ -101,7 +96,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
                 FilledButton(
                   onPressed: isLoading ? null : _submitLogin,
-                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
                   child: isLoading 
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                       : const Text('Login'),

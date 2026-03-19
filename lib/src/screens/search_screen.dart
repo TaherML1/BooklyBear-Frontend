@@ -18,10 +18,17 @@ final searchResultsProvider = FutureProvider<List<Book>>((ref) async {
     final response = await dio.get('/search', queryParameters: {'q': query});
     final hits = response.data['hits'] as List<dynamic>? ?? [];
     return hits
-        .map((h) => Book.fromJson(h['document'] as Map<String, dynamic>))
+        .map((h) => Book.fromJson(h['document'] as Map<String, dynamic>? ?? {}))
+        .where((book) => book.id.isNotEmpty) // Skip empty/corrupt entries
         .toList();
   } on DioException catch (e) {
-    throw e.response?.data['message'] ?? 'Search failed';
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      throw data['message'] ?? 'Search failed';
+    }
+    throw 'Search failed: ${e.message}';
+  } catch (e) {
+    rethrow;
   }
 });
 
@@ -34,12 +41,15 @@ class SearchScreen extends ConsumerStatefulWidget {
 }
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
-  final _controller = TextEditingController();
+  late final TextEditingController _controller;
   String _lastQuery = '';
 
   @override
   void initState() {
     super.initState();
+    final initialQuery = ref.read(searchQueryProvider);
+    _controller = TextEditingController(text: initialQuery);
+    _lastQuery = initialQuery;
     _controller.addListener(_onTextChanged);
   }
 
@@ -71,23 +81,29 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: TextField(
-          controller: _controller,
-          autofocus: false,
-          decoration: InputDecoration(
-            hintText: 'Search books by title or author…',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: Colors.grey.shade400),
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: query.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _controller.clear();
-                      ref.read(searchQueryProvider.notifier).state = '';
-                    },
-                  )
-                : null,
+        title: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(150),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: TextField(
+            controller: _controller,
+            autofocus: false,
+            decoration: InputDecoration(
+              hintText: 'Search books by title or author…',
+              border: InputBorder.none,
+              hintStyle: TextStyle(color: Colors.grey.shade500),
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: query.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _controller.clear();
+                        ref.read(searchQueryProvider.notifier).state = '';
+                      },
+                    )
+                  : null,
+            ),
           ),
         ),
       ),
@@ -149,8 +165,8 @@ class _BookSearchCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 1,
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => context.push('/book/${book.isbn}'),
         child: Padding(

@@ -1,14 +1,16 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:booklybear/src/features/auth/data/auth_repository.dart';
+import 'package:booklybear/src/features/auth/presentation/auth_state_provider.dart';
 import 'package:booklybear/src/utils/dio_client.dart';
 
 // 1. State definition (AsyncValue handles Data, Loading, Error automatically)
 class AuthController extends StateNotifier<AsyncValue<void>> {
   final AuthRepository _authRepository;
   final FlutterSecureStorage _storage;
+  final AuthStateNotifier _authStateNotifier;
 
-  AuthController(this._authRepository, this._storage)
+  AuthController(this._authRepository, this._storage, this._authStateNotifier)
       : super(const AsyncValue.data(null));
 
   Future<bool> login(String email, String password) async {
@@ -22,7 +24,10 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
       // 2. Save Token securely
       await _storage.write(key: 'auth_token', value: token);
       
-      // 3. Set state to success
+      // 3. Update AuthState immediately
+      _authStateNotifier.onLogin();
+      
+      // 4. Set state to success
       state = const AsyncValue.data(null);
       return true; // Success
     } catch (e, st) {
@@ -54,6 +59,7 @@ class AuthController extends StateNotifier<AsyncValue<void>> {
   
   Future<void> logout() async {
     await _storage.delete(key: 'auth_token');
+    _authStateNotifier.onLogout();
   }
 }
 
@@ -62,5 +68,6 @@ final authControllerProvider = StateNotifierProvider<AuthController, AsyncValue<
   return AuthController(
     ref.read(authRepositoryProvider),
     ref.read(storageProvider),
+    ref.read(authStateProvider.notifier),
   );
 });

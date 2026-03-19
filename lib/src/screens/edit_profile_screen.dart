@@ -106,7 +106,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: Colors.orange.shade100,
+                    backgroundColor: theme.colorScheme.primaryContainer,
                     child: Text(
                       _nameController.text.isNotEmpty
                           ? _nameController.text[0].toUpperCase()
@@ -114,7 +114,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                       style: TextStyle(
                         fontSize: 38,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange.shade700,
+                        color: theme.colorScheme.onPrimary,
                       ),
                     ),
                   ),
@@ -148,11 +148,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             TextFormField(
               controller: _nameController,
               maxLength: 40,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Your name',
-                prefixIcon: const Icon(Icons.person_outline),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
+                prefixIcon: Icon(Icons.person_outline),
               ),
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Display name cannot be empty';
@@ -177,14 +175,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               controller: _bioController,
               maxLength: 160,
               maxLines: 3,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'Tell others about your reading taste…',
-                prefixIcon: const Padding(
+                prefixIcon: Padding(
                   padding: EdgeInsets.only(bottom: 40),
                   child: Icon(Icons.edit_note_outlined),
                 ),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
                 alignLabelWithHint: true,
               ),
             ),
@@ -198,7 +194,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               label: const Text('Save Changes'),
               style: FilledButton.styleFrom(
                 minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                backgroundColor: theme.colorScheme.primaryContainer,
+                foregroundColor: theme.colorScheme.onPrimary,
               ),
             ),
           ],

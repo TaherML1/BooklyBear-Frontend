@@ -70,16 +70,7 @@ class ProfileScreen extends ConsumerWidget {
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.brown.shade400,
-                            Colors.orange.shade700,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
+                      color: Theme.of(context).colorScheme.surfaceContainerLow,
                       child: SafeArea(
                         child: Padding(
                           padding: const EdgeInsets.all(20),
@@ -88,9 +79,9 @@ class ProfileScreen extends ConsumerWidget {
                             children: [
                               CircleAvatar(
                                 radius: 44,
-                                backgroundColor: Colors.white.withValues(
-                                  alpha: 0.3,
-                                ),
+                                backgroundColor: Theme.of(
+                                  context,
+                                ).colorScheme.primaryContainer,
                                 backgroundImage: user.avatarUrl != null
                                     ? CachedNetworkImageProvider(
                                         user.avatarUrl!,
@@ -101,10 +92,12 @@ class ProfileScreen extends ConsumerWidget {
                                         user.displayName.isNotEmpty
                                             ? user.displayName[0].toUpperCase()
                                             : '?',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontSize: 36,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimary,
                                         ),
                                       )
                                     : null,
@@ -117,34 +110,32 @@ class ProfileScreen extends ConsumerWidget {
                                   children: [
                                     Text(
                                       user.displayName,
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.headlineLarge,
                                     ),
                                     Text(
                                       '@${user.username}',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            color: Theme.of(
+                                              context,
+                                            ).colorScheme.onSurfaceVariant,
+                                          ),
                                     ),
                                     if (user.bio != null &&
                                         user.bio!.isNotEmpty) ...[
-                                      const SizedBox(height: 6),
+                                      const SizedBox(height: 12),
                                       Text(
                                         user.bio!,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.white.withValues(
-                                            alpha: 0.9,
-                                          ),
-                                        ),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(height: 1.4),
                                       ),
                                     ],
                                   ],
@@ -158,20 +149,24 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   actions: [
                     IconButton(
-                      icon: const Icon(
-                        Icons.edit_outlined,
-                        color: Colors.white,
+                      // Removed "const" from here!
+                      icon: Icon(
+                        Icons.edit_outlined, // Added the comma here!
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                       onPressed: () {
-                        context.go('/profile/edit', extra: {
-                          'displayName': user.displayName,
-                          'bio': user.bio,
-                        });
+                        context.go(
+                          '/profile/edit',
+                          extra: {
+                            'displayName': user.displayName,
+                            'bio': user.bio,
+                          },
+                        );
                       },
                     ),
                   ],
                 ),
-
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -195,9 +190,11 @@ class ProfileScreen extends ConsumerWidget {
                                           vertical: 6,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Colors.orange.shade600,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                           borderRadius: BorderRadius.circular(
-                                            20,
+                                            8,
                                           ),
                                         ),
                                         child: Row(
@@ -229,9 +226,12 @@ class ProfileScreen extends ConsumerWidget {
                                           const SizedBox(width: 4),
                                           Text(
                                             '${user.currentStreak} day streak',
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .labelLarge
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -274,11 +274,11 @@ class ProfileScreen extends ConsumerWidget {
                                 child: LinearProgressIndicator(
                                   value: xpPercent,
                                   minHeight: 10,
-                                  backgroundColor: Colors.orange.withValues(
-                                    alpha: 0.15,
-                                  ),
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.orange.shade600,
+                                    Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                               ),
@@ -397,16 +397,21 @@ class ProfileScreen extends ConsumerWidget {
                         const SizedBox(height: 20),
 
                         // ── Logout ──────────────────────────────────────────
-                        OutlinedButton.icon(
+                        const SizedBox(height: 12),
+                        FilledButton.icon(
                           onPressed: () => ref
                               .read(authControllerProvider.notifier)
                               .logout(),
                           icon: const Icon(Icons.logout),
                           label: const Text('Log Out'),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(double.infinity, 50),
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(double.infinity, 52),
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.errorContainer,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onErrorContainer,
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -432,9 +437,9 @@ class _SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(padding: const EdgeInsets.all(16), child: child),
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      child: Padding(padding: const EdgeInsets.all(20), child: child),
     );
   }
 }
@@ -455,25 +460,25 @@ class _LibraryStatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 1,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      margin: EdgeInsets.zero,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Column(
           children: [
             Icon(icon, color: color, size: 28),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               '$value',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineMedium?.copyWith(color: color),
             ),
             Text(
               label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -497,12 +502,9 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 28, color: Colors.orange.shade400),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+        Icon(icon, size: 28, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(height: 8),
+        Text(value, style: Theme.of(context).textTheme.headlineSmall),
         Text(
           label,
           style: TextStyle(fontSize: 12, color: Colors.grey.shade600),

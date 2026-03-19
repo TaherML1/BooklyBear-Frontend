@@ -171,16 +171,26 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
         children: [
           // ── Cover Image ──────────────────────────────────────────────────
           Container(
-            height: 300,
-            padding: const EdgeInsets.all(24),
-            color: Colors.grey[200],
-            child: CachedNetworkImage(
-              imageUrl: book.coverImageUrl,
-              fit: BoxFit.contain,
-              placeholder: (_, __) =>
-                  const Center(child: CircularProgressIndicator()),
-              errorWidget: (_, __, ___) =>
-                  const Icon(Icons.book, size: 100, color: Colors.grey),
+            height: 380,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerLow,
+            ),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    imageUrl: book.coverImageUrl,
+                    fit: BoxFit.contain,
+                    placeholder: (_, __) =>
+                        const Center(child: CircularProgressIndicator()),
+                    errorWidget: (_, __, ___) =>
+                        const Icon(Icons.book, size: 100, color: Colors.grey),
+                  ),
+                ),
+              ),
             ),
           ),
 
@@ -189,17 +199,27 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Metadata Tag
+                if (book.categories.isNotEmpty) ...[
+                  Text(
+                    book.categories.first.toUpperCase(),
+                    style: textTheme.labelMedium?.copyWith(
+                      letterSpacing: 1.5,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 Text(
                   book.title,
-                  style: textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: textTheme.headlineLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   book.author,
                   style: textTheme.titleMedium?.copyWith(
-                    color: Colors.grey[700],
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -237,7 +257,8 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                         '${book.averageRating!.toStringAsFixed(1)}'  
                         '${book.ratingsCount != null ? ' (${_formatCount(book.ratingsCount!)})' : ''}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -279,6 +300,8 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                           label: const Text('Add to Library'),
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
+                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
                           ),
                         ),
                       );
@@ -372,11 +395,11 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                                     ? '🎉 Mark as Finished'
                                     : 'Save Progress',
                               ),
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
                                 ),
-                              ),
                             ),
                           ),
                         ],
@@ -409,10 +432,8 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
 
                 // ── Description ──────────────────────────────────────────
                 Text(
-                  'Description',
-                  style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'About the book',
+                  style: textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
                 Text(

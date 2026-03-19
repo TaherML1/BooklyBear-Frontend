@@ -47,12 +47,14 @@ class UserBook {
 
   factory UserBook.fromJson(Map<String, dynamic> json) {
     return UserBook(
-      id: json['id'] as String,
-      book: Book.fromJson(json['book'] as Map<String, dynamic>),
-      status: readingStatusFromString(json['status'] as String),
-      currentPage: json['currentPage'] as int? ?? 0,
-      rating: json['rating'] as int?,
-      addedAt: DateTime.parse(json['addedAt'] as String),
+      id: json['id']?.toString() ?? '',
+      book: Book.fromJson(json['book'] as Map<String, dynamic>? ?? {}),
+      status: readingStatusFromString(json['status']?.toString() ?? ''),
+      currentPage: (json['currentPage'] as num?)?.toInt() ?? 0,
+      rating: (json['rating'] as num?)?.toInt(),
+      addedAt: json['addedAt'] != null
+          ? DateTime.tryParse(json['addedAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 

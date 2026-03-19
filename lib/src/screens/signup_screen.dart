@@ -62,10 +62,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 Text(
                   'Join BooklyBear 🐻',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.brown[800],
-                      ),
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
                 const SizedBox(height: 30),
 
@@ -74,7 +71,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Username',
                     prefixIcon: Icon(Icons.person_outline),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (value) => value!.isEmpty ? 'Username is required' : null,
                 ),
@@ -85,7 +81,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Email',
                     prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (value) => !value!.contains('@') ? 'Invalid email' : null,
                 ),
@@ -97,7 +92,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Password',
                     prefixIcon: Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (value) => value!.length < 6 ? 'Too short' : null,
                 ),
@@ -105,7 +99,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
                 FilledButton(
                   onPressed: isLoading ? null : _submitSignup,
-                  style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  ),
                   child: isLoading 
                     ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
                     : const Text('Sign Up'),
