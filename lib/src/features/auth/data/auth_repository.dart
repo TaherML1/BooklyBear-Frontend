@@ -11,15 +11,16 @@ class AuthRepository {
   // Call POST /api/auth/login
   Future<String> login({required String email, required String password}) async {
     try {
+      print('--- [AUTH] Attempting login for: $email');
       final response = await _dio.post('/auth/login', data: {
         'email': email,
         'password': password,
       });
-      
-      // Your backend returns { "token": "..." }
+      print('--- [AUTH] Login successful');
       return response.data['token'];
     } on DioException catch (e) {
-      // Helper to extract backend error message like "Invalid credentials"
+      print('--- [AUTH] Login ERROR: ${e.type} - ${e.message}');
+      if (e.error != null) print('--- [AUTH] Details: ${e.error}');
       throw e.response?.data['message'] ?? 'Login failed';
     }
   }
@@ -31,13 +32,16 @@ class AuthRepository {
     required String password,
   }) async {
     try {
+      print('--- [AUTH] Attempting registration for: $username ($email)');
       await _dio.post('/auth/register', data: {
         'username': username,
         'email': email,
         'password': password,
       });
-      // We don't need to return anything on success, just not throw error
+      print('--- [AUTH] Registration successful');
     } on DioException catch (e) {
+      print('--- [AUTH] Registration ERROR: ${e.type} - ${e.message}');
+      if (e.error != null) print('--- [AUTH] Details: ${e.error}');
       throw e.response?.data['message'] ?? 'Registration failed';
     }
   }

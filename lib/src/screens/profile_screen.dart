@@ -7,6 +7,7 @@ import '../features/user/data/profile_repository.dart';
 import '../features/user/data/stats_repository.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
+import '../features/gamification/presentation/gamification_providers.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -392,6 +393,55 @@ class ProfileScreen extends ConsumerWidget {
                               ),
                             ],
                           ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        // ── Achievements ────────────────────────────────────
+                        Consumer(
+                           builder: (context, ref, child) {
+                             final achievementsAsync = ref.watch(achievementsProvider);
+                             return achievementsAsync.when(
+                               loading: () => const Center(child: CircularProgressIndicator()),
+                               error: (err, _) => const SizedBox.shrink(),
+                               data: (achievements) {
+                                 if (achievements.isEmpty) return const SizedBox.shrink();
+                                 return _SectionCard(
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text('Achievements', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                                       const SizedBox(height: 8),
+                                       SizedBox(
+                                         height: 100,
+                                         child: ListView.builder(
+                                           scrollDirection: Axis.horizontal,
+                                           itemCount: achievements.length,
+                                           itemBuilder: (context, index) {
+                                             final ach = achievements[index];
+                                             return Opacity(
+                                               opacity: ach.unlocked ? 1.0 : 0.4,
+                                               child: Container(
+                                                 width: 80,
+                                                 margin: const EdgeInsets.only(right: 12),
+                                                 child: Column(
+                                                   children: [
+                                                     Text(ach.icon, style: const TextStyle(fontSize: 32)),
+                                                     const SizedBox(height: 4),
+                                                     Text(ach.name, style: const TextStyle(fontSize: 10), textAlign: TextAlign.center),
+                                                   ],
+                                                 ),
+                                               ),
+                                             );
+                                           },
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 );
+                               },
+                             );
+                           },
                         ),
 
                         const SizedBox(height: 20),

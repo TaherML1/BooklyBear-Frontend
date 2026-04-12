@@ -40,6 +40,10 @@ class HomeScreen extends ConsumerWidget {
           children: [
             // ── Gamification Hero ─────────────────────────────────────────
             _buildGamificationHero(context, ref),
+            const SizedBox(height: 24),
+
+            // ── Daily Challenge ───────────────────────────────────────────
+            _buildDailyChallenge(context, ref),
             const SizedBox(height: 48),
 
             // ── AI Recommendations ────────────────────────────────────────
@@ -170,6 +174,73 @@ class HomeScreen extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text('Failed to load stats: $err'),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDailyChallenge(BuildContext context, WidgetRef ref) {
+    final challengeAsync = ref.watch(todaysChallengeProvider);
+
+    return challengeAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => const SizedBox.shrink(),
+      data: (challenge) {
+        if (challenge.isCompleted && !challenge.newlyCompleted) {
+          // If completely done before today, we could just show a checkmark or ignore it.
+        }
+
+        final double progress = (challenge.pagesReadToday / challenge.goalPages).clamp(0.0, 1.0);
+
+        return Card(
+          color: challenge.isCompleted 
+              ? Theme.of(context).colorScheme.primaryContainer 
+              : Theme.of(context).colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: challenge.isCompleted 
+                  ? Theme.of(context).colorScheme.primary 
+                  : Theme.of(context).colorScheme.outlineVariant,
+            ),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      challenge.isCompleted ? Icons.check_circle : Icons.star_border,
+                      color: challenge.isCompleted ? Colors.green : Colors.orange,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Daily Challenge',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    const Spacer(),
+                    Text('+${challenge.xpReward} XP', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(challenge.description),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${challenge.pagesReadToday} / ${challenge.goalPages} pages'),
+                    if (challenge.isCompleted) const Text('Completed!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                if (!challenge.isCompleted) ...[
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(value: progress),
+                ],
+              ],
+            ),
           ),
         );
       },

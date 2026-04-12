@@ -30,6 +30,15 @@ class ProfileRepository {
       throw e.response?.data['message'] ?? 'Failed to update profile';
     }
   }
+
+  Future<User> getPublicProfile(String username) async {
+    try {
+      final response = await _dio.get('/user/$username');
+      return User.fromJson(response.data);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to load profile';
+    }
+  }
 }
 
 // 1. Provider for the Repository
@@ -41,4 +50,8 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 // This will be watched by our UI and will cache the data
 final myProfileProvider = FutureProvider<User>((ref) {
   return ref.watch(profileRepositoryProvider).getMyProfile();
+});
+
+final publicProfileProvider = FutureProvider.autoDispose.family<User, String>((ref, username) {
+  return ref.watch(profileRepositoryProvider).getPublicProfile(username);
 });

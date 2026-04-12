@@ -3,8 +3,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 String getApiBaseUrl() {
-  // Android / iOS physical device needs the PC's actual LAN IP
-  return 'http://192.168.1.76:3000/api';
+  // Updated to match your PC's actual IPv4 address
+  const url = 'http://192.168.1.68:3000/api';
+  print('--- [CONFIG] Using API Base URL: $url');
+  return url;
 }
 
 // 1. Provider for the Storage
@@ -36,6 +38,15 @@ final dioProvider = Provider((ref) {
         // Handle 401 Unauthorized (Logout user) here later
         return handler.next(e);
       },
+    ),
+  );
+
+  // 3. Log ALL requests and responses to the Flutter console
+  dio.interceptors.add(
+    LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      logPrint: (obj) => print('--- [DIO] $obj'),
     ),
   );
 

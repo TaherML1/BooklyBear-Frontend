@@ -14,6 +14,10 @@ import '../screens/edit_profile_screen.dart';
 import '../screens/main_scaffold.dart';
 import '../screens/library_screen.dart';
 import '../screens/groups_screen.dart';
+import '../screens/group_details_screen.dart';
+import '../screens/create_group_screen.dart';
+import '../screens/friends_list_screen.dart';
+import '../screens/public_profile_screen.dart';
 import '../screens/focus_timer_screen.dart';
 
 // Key for the root navigator (the one that handles full-screen pushes)
@@ -129,6 +133,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/groups',
                 builder: (context, state) => const GroupsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'create',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const CreateGroupScreen(),
+                  ),
+                  GoRoute(
+                    path: ':id',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => GroupDetailsScreen(groupId: state.pathParameters['id']!),
+                  ),
+                ],
               ),
             ],
           ),
@@ -140,6 +156,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const ProfileScreen(),
                 routes: [
                   GoRoute(
+                    path: 'friends',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const FriendsListScreen(),
+                  ),
+                  GoRoute(
                     path: 'edit',
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) {
@@ -149,6 +170,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         initialBio: extra?['bio'],
                       );
                     },
+                  ),
+                  GoRoute(
+                    path: ':username',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => PublicProfileScreen(username: state.pathParameters['username']!),
                   ),
                 ],
               ),
