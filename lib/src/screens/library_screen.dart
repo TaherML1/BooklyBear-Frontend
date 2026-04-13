@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
+import '../theme/app_theme.dart';
 
 class LibraryScreen extends ConsumerWidget {
   const LibraryScreen({super.key});
@@ -16,7 +18,7 @@ class LibraryScreen extends ConsumerWidget {
           title: Text('My Library', style: Theme.of(context).textTheme.headlineMedium),
           bottom: const TabBar(
             tabs: [
-              Tab(icon: Icon(Icons.book), text: 'Reading'),
+              Tab(icon: Icon(Icons.book_outlined), text: 'Reading'),
               Tab(icon: Icon(Icons.bookmarks_outlined), text: 'To Read'),
               Tab(icon: Icon(Icons.check_circle_outline), text: 'Finished'),
             ],
@@ -64,9 +66,9 @@ class _BookList extends ConsumerWidget {
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(libraryProvider),
           child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             itemCount: books.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
             itemBuilder: (context, index) =>
                 _BookCard(userBook: books[index], ref: ref),
           ),
@@ -79,14 +81,15 @@ class _BookList extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const Icon(Icons.error_outline, size: 48, color: AppTheme.error),
               const SizedBox(height: 12),
               Text(
                 'Failed to load library:\n$err',
                 textAlign: TextAlign.center,
+                style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+              FilledButton(
                 onPressed: () => ref.invalidate(libraryProvider),
                 child: const Text('Retry'),
               ),
@@ -109,20 +112,19 @@ class _BookCard extends StatelessWidget {
     final book = userBook.book;
     final theme = Theme.of(context);
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
+    return Container(
+      decoration: AppTheme.cardDecoration,
       child: InkWell(
         onTap: () => context.push('/book/${book.isbn}'),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // --- Cover Image ---
               ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
                 child: Image.network(
                   book.coverImageUrl,
                   width: 70,
@@ -131,12 +133,15 @@ class _BookCard extends StatelessWidget {
                   errorBuilder: (_, __, ___) => Container(
                     width: 70,
                     height: 105,
-                    color: theme.colorScheme.surfaceContainerHighest,
-                    child: const Icon(Icons.book, size: 36),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.book, size: 36, color: AppTheme.onSurfaceVariant),
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
 
               // --- Book Info ---
               Expanded(
@@ -145,8 +150,10 @@ class _BookCard extends StatelessWidget {
                   children: [
                     Text(
                       book.title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+                      style: GoogleFonts.notoSerif(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        color: AppTheme.onSurface,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -154,56 +161,60 @@ class _BookCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       book.author,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: theme.textTheme.bodySmall,
                     ),
 
                     // --- Progress Section (Reading only) ---
                     if (userBook.status == ReadingStatus.reading) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'Page ${userBook.currentPage} of ${book.pageCount}',
-                            style: theme.textTheme.bodySmall,
+                            style: theme.textTheme.labelSmall,
                           ),
                           Text(
                             '${(userBook.progressPercent * 100).toStringAsFixed(0)}%',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.primary,
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primary,
+                              fontSize: 12,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(100),
                         child: LinearProgressIndicator(
                           value: userBook.progressPercent,
-                          minHeight: 6,
-                          backgroundColor:
-                              theme.colorScheme.surfaceContainerHighest,
+                          minHeight: 4,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      // ── Focus Timer Button ──────────────────────────────
+                      const SizedBox(height: 14),
+                      // ── Focus Timer Button ───────────────────────────────
                       SizedBox(
                         width: double.infinity,
-                        child: FilledButton.tonalIcon(
-                          onPressed: () => context.push(
-                            '/timer/${userBook.id}?title=${Uri.encodeComponent(book.title)}',
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient,
+                            borderRadius: BorderRadius.circular(32),
                           ),
-                          icon: const Icon(Icons.timer_outlined, size: 16),
-                          label: const Text('Focus Timer'),
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(0, 34),
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            textStyle: const TextStyle(fontSize: 13),
-                            backgroundColor: const Color(0xFF7B61FF).withValues(alpha: 0.15),
-                            foregroundColor: const Color(0xFF7B61FF),
+                          child: FilledButton.tonalIcon(
+                            onPressed: () => context.push(
+                              '/timer/${userBook.id}?title=${Uri.encodeComponent(book.title)}',
+                            ),
+                            icon: const Icon(Icons.timer_outlined, size: 16),
+                            label: const Text('Focus Timer'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: AppTheme.onPrimary,
+                              minimumSize: const Size(0, 36),
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                            ),
                           ),
                         ),
                       ),
@@ -212,23 +223,23 @@ class _BookCard extends StatelessWidget {
                     // --- Rating Section (Finished only) ---
                     if (userBook.status == ReadingStatus.read &&
                         userBook.rating != null) ...[
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       Row(
                         children: List.generate(
                           5,
                           (i) => Icon(
                             i < (userBook.rating ?? 0)
-                                ? Icons.star
-                                : Icons.star_border,
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
                             size: 18,
-                            color: Colors.amber,
+                            color: const Color(0xFFD4A84B),
                           ),
                         ),
                       ),
                     ],
 
-                    // --- Status Chip ---
-                    const SizedBox(height: 10),
+                    // --- Status Chip --- pill style
+                    const SizedBox(height: 12),
                     _StatusChip(status: userBook.status),
                   ],
                 ),
@@ -249,21 +260,21 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
-      ReadingStatus.reading => ('Reading', Colors.blue),
-      ReadingStatus.read => ('Finished ✓', Colors.green),
-      ReadingStatus.toRead => ('To Read', Colors.orange),
-      ReadingStatus.dnf => ('Did Not Finish', Colors.grey),
+      ReadingStatus.reading => ('Reading', AppTheme.primary),
+      ReadingStatus.read => ('Finished ✓', AppTheme.primary),
+      ReadingStatus.toRead => ('To Read', AppTheme.secondary),
+      ReadingStatus.dnf => ('Did Not Finish', AppTheme.outline),
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
+        color: color.withAlpha(20),
+        borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
         label,
-        style: TextStyle(
+        style: GoogleFonts.inter(
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: color,
@@ -288,15 +299,17 @@ class _EmptyState extends StatelessWidget {
             Icon(
               Icons.library_books_outlined,
               size: 72,
-              color: Colors.grey.shade300,
+              color: AppTheme.outlineVariant,
             ),
             const SizedBox(height: 20),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: Colors.grey.shade500),
+              style: GoogleFonts.inter(
+                color: AppTheme.onSurfaceVariant,
+                fontSize: 15,
+                height: 1.5,
+              ),
             ),
           ],
         ),

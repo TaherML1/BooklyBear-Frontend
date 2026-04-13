@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../theme/app_theme.dart';
 
 class MainScaffold extends StatelessWidget {
   const MainScaffold({
@@ -15,41 +17,55 @@ class MainScaffold extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: Container(
-        color: Theme.of(context).colorScheme.surface,
-        child: NavigationBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          indicatorColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (int index) => _onTap(context, index),
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Home',
+      bottomNavigationBar: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppTheme.surface.withAlpha(204), // 80% opacity
+              border: Border(
+                top: BorderSide(
+                  color: AppTheme.outlineVariant.withAlpha(38), // 15% ghost
+                  width: 0.5,
+                ),
+              ),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.search_outlined),
-              selectedIcon: Icon(Icons.search),
-              label: 'Discover',
+            child: NavigationBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              indicatorColor: AppTheme.primaryFixed.withAlpha(80),
+              surfaceTintColor: Colors.transparent,
+              selectedIndex: navigationShell.currentIndex,
+              onDestinationSelected: (int index) => _onTap(context, index),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.local_library_outlined),
+                  selectedIcon: Icon(Icons.local_library, color: AppTheme.primary),
+                  label: 'Library',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.auto_stories_outlined),
+                  selectedIcon: Icon(Icons.auto_stories, color: AppTheme.primary),
+                  label: 'Discover',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.library_books_outlined),
+                  selectedIcon: Icon(Icons.library_books, color: AppTheme.primary),
+                  label: 'Shelf',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.group_outlined),
+                  selectedIcon: Icon(Icons.group, color: AppTheme.primary),
+                  label: 'Clubs',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person, color: AppTheme.primary),
+                  label: 'Profile',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.library_books_outlined),
-              selectedIcon: Icon(Icons.library_books),
-              label: 'Library',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.group_outlined),
-              selectedIcon: Icon(Icons.group),
-              label: 'Groups',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+          ),
         ),
       ),
     );

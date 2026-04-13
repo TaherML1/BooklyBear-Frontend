@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:cached_network_image/cached_network_image.dart';
 import '../data/review_repository.dart';
 import '../domain/book_review.dart';
+import '../../../theme/app_theme.dart';
 
 class BookReviewsSection extends ConsumerStatefulWidget {
   final String isbn;
@@ -40,13 +42,13 @@ class _BookReviewsSectionState extends ConsumerState<BookReviewsSection> {
       ref.invalidate(bookReviewsProvider(widget.isbn));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('Review posted!'), backgroundColor: Colors.green),
+           const SnackBar(content: Text('Review posted!')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-           SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+           SnackBar(content: Text('Error: $e')),
         );
       }
     } finally {
@@ -57,80 +59,82 @@ class _BookReviewsSectionState extends ConsumerState<BookReviewsSection> {
   @override
   Widget build(BuildContext context) {
     final reviewsAsync = ref.watch(bookReviewsProvider(widget.isbn));
-    final theme = Theme.of(context);
+    final textTheme = Theme.of(context).textTheme;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Community Reviews',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: textTheme.headlineMedium,
         ),
         const SizedBox(height: 16),
         
-        // Write a review section
-        Card(
-          elevation: 0,
-          color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Text('Rate this book: ', style: theme.textTheme.bodyMedium),
-                    Row(
-                      children: List.generate(5, (i) {
-                        final filled = i < _selectedDraftRating;
-                        return GestureDetector(
-                          onTap: () => setState(() => _selectedDraftRating = i + 1),
+        // Write a review section — editorial card
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Text('Rate this book: ', style: GoogleFonts.inter(color: AppTheme.onSurface, fontSize: 14)),
+                  Row(
+                    children: List.generate(5, (i) {
+                      final filled = i < _selectedDraftRating;
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedDraftRating = i + 1),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 2),
                           child: Icon(
                             filled ? Icons.star_rounded : Icons.star_outline_rounded,
-                            color: filled ? Colors.amber : Colors.grey[400],
+                            color: filled ? const Color(0xFFD4A84B) : AppTheme.outlineVariant,
                             size: 28,
                           ),
-                        );
-                      }),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _reviewController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'What did you think of the book?',
-                    filled: true,
-                    fillColor: theme.colorScheme.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
+                        ),
+                      );
+                    }),
+                  )
+                ],
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _reviewController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'What did you think of the book?',
+                  filled: true,
+                  fillColor: AppTheme.surfaceContainerLowest,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                const SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: FilledButton.icon(
-                    onPressed: _isSubmitting ? null : _submitReview,
-                    icon: _isSubmitting 
-                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                     : const Icon(Icons.send, size: 18),
-                    label: const Text('Post Review'),
-                  ),
+              ),
+              const SizedBox(height: 14),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton.icon(
+                  onPressed: _isSubmitting ? null : _submitReview,
+                  icon: _isSubmitting 
+                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                   : const Icon(Icons.send, size: 18),
+                  label: const Text('Post Review'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 28),
 
         // Reviews list
         reviewsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (err, _) => Center(child: Text('Error loading reviews')),
+          error: (err, _) => Center(child: Text('Error loading reviews', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant))),
           data: (paginated) {
             if (paginated.reviews.isEmpty) {
               return Center(
@@ -138,7 +142,7 @@ class _BookReviewsSectionState extends ConsumerState<BookReviewsSection> {
                   padding: const EdgeInsets.symmetric(vertical: 32),
                   child: Text(
                     'No reviews yet. Be the first to review!',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
                   ),
                 ),
               );
@@ -148,7 +152,7 @@ class _BookReviewsSectionState extends ConsumerState<BookReviewsSection> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: paginated.reviews.length,
-              separatorBuilder: (_, __) => const Divider(height: 32),
+              separatorBuilder: (_, __) => const SizedBox(height: 20),
               itemBuilder: (context, index) {
                 final review = paginated.reviews[index];
                 return _ReviewCard(review: review);
@@ -167,66 +171,72 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final user = review.user;
     
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: Colors.orange.shade100,
-              backgroundImage: user.avatarUrl != null ? CachedNetworkImageProvider(user.avatarUrl!) : null,
-              child: user.avatarUrl == null
-                  ? Text(
-                      user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?',
-                      style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.displayName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '@${user.username} • Level ${user.level}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              timeago.format(DateTime.parse(review.createdAt)),
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (review.rating != null)
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
-            children: List.generate(5, (i) {
-              return Icon(
-                i < review.rating! ? Icons.star_rounded : Icons.star_outline_rounded,
-                color: Colors.amber,
-                size: 20,
-              );
-            }),
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: AppTheme.primaryFixed,
+                backgroundImage: user.avatarUrl != null ? CachedNetworkImageProvider(user.avatarUrl!) : null,
+                child: user.avatarUrl == null
+                    ? Text(
+                        user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?',
+                        style: GoogleFonts.notoSerif(
+                          color: AppTheme.onPrimaryFixed,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.displayName,
+                      style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                    ),
+                    Text(
+                      '@${user.username} • Level ${user.level}',
+                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                timeago.format(DateTime.parse(review.createdAt)),
+                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.onSurfaceVariant),
+              ),
+            ],
           ),
-        if (review.rating != null && review.reviewText != null && review.reviewText!.isNotEmpty)
-          const SizedBox(height: 8),
-        if (review.reviewText != null && review.reviewText!.isNotEmpty)
-          Text(
-            review.reviewText!,
-            style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-          ),
-      ],
+          const SizedBox(height: 14),
+          if (review.rating != null)
+            Row(
+              children: List.generate(5, (i) {
+                return Icon(
+                  i < review.rating! ? Icons.star_rounded : Icons.star_outline_rounded,
+                  color: const Color(0xFFD4A84B), // warm gold
+                  size: 18,
+                );
+              }),
+            ),
+          if (review.rating != null && review.reviewText != null && review.reviewText!.isNotEmpty)
+            const SizedBox(height: 10),
+          if (review.reviewText != null && review.reviewText!.isNotEmpty)
+            Text(
+              review.reviewText!,
+              style: GoogleFonts.inter(color: AppTheme.onSurface, height: 1.6),
+            ),
+        ],
+      ),
     );
   }
 }

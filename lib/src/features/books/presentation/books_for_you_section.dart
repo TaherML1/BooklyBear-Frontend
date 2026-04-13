@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../utils/app_logger.dart';
 import '../data/recommendation_repository.dart';
+import '../../../theme/app_theme.dart';
 
 class BooksForYouSection extends ConsumerWidget {
   const BooksForYouSection({super.key});
@@ -29,37 +31,36 @@ class BooksForYouSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_awesome, color: Colors.purple, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  'Books For You',
-                  style: Theme.of(context).textTheme.headlineLarge,
-                ),
-              ],
+            Text(
+              'Curated For You',
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             SizedBox(
-              height: 250,
+              height: 260,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: recommendations.length,
-                separatorBuilder: (context, index) => const SizedBox(width: 14),
+                separatorBuilder: (context, index) => const SizedBox(width: 16),
                 itemBuilder: (context, index) {
                   final rec = recommendations[index];
                   final book = rec.book;
                   
                   return SizedBox(
                     width: 120,
-                    child: Card(
-                      child: InkWell(
-                        onTap: () => context.push('/book/${book.isbn}'),
-                        borderRadius: BorderRadius.circular(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                          ClipRRect(
+                    child: InkWell(
+                      onTap: () => context.push('/book/${book.isbn}'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                        // Cover — ambient shadow
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: AppTheme.ambientShadow,
+                          ),
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: Image.network(
                               book.coverImageUrl,
@@ -69,36 +70,44 @@ class BooksForYouSection extends ConsumerWidget {
                               errorBuilder: (_, __, ___) => Container(
                                 height: 180,
                                 width: 120,
-                                color: Colors.grey.shade200,
-                                child: const Icon(Icons.book, size: 40, color: Colors.grey),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceContainerHigh,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.book, size: 40, color: AppTheme.onSurfaceVariant),
                               ),
                             ),
                           ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    book.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                                  ),
-                                  Text(
-                                    book.author,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
                         ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  book.title,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.notoSerif(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: AppTheme.onSurface,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  book.author,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );

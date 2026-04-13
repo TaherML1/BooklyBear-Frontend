@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/groups/domain/group_features.dart';
 import '../theme/app_theme.dart';
 
@@ -10,51 +10,63 @@ class MemberProgressCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 16,
-                backgroundImage: progress.avatarUrl != null ? NetworkImage(progress.avatarUrl!) : null,
-                child: progress.avatarUrl == null ? Text(progress.displayName[0].toUpperCase()) : null,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  progress.displayName,
-                  style: theme.textTheme.titleSmall,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: AppTheme.cardDecoration,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: AppTheme.primaryFixed,
+                  backgroundImage: progress.avatarUrl != null ? NetworkImage(progress.avatarUrl!) : null,
+                  child: progress.avatarUrl == null
+                      ? Text(
+                          progress.displayName[0].toUpperCase(),
+                          style: GoogleFonts.notoSerif(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.onPrimaryFixed,
+                          ),
+                        )
+                      : null,
                 ),
-              ),
-              Text(
-                '${progress.percentage}%',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppTheme.primary,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    progress.displayName,
+                    style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress.percentage / 100,
-              minHeight: 8,
-              backgroundColor: theme.colorScheme.surfaceContainerLow,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                Text(
+                  '${progress.percentage}%',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.primary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${progress.currentPage} / ${progress.totalPages} pages',
-            style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
-          ),
-        ],
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(100),
+              child: LinearProgressIndicator(
+                value: progress.percentage / 100,
+                minHeight: 4,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '${progress.currentPage} / ${progress.totalPages} pages',
+              style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -103,7 +115,6 @@ class ActivityItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Row(
@@ -112,7 +123,7 @@ class ActivityItem extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.1),
+              color: AppTheme.primaryFixed.withAlpha(60),
               shape: BoxShape.circle,
             ),
             child: Icon(_getIcon(), size: 18, color: AppTheme.primary),
@@ -124,11 +135,12 @@ class ActivityItem extends StatelessWidget {
               children: [
                 Text(
                   _getMessage(),
-                  style: theme.textTheme.bodyMedium,
+                  style: GoogleFonts.inter(color: AppTheme.onSurface, height: 1.4),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   _timeAgo(activity.createdAt),
-                  style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
+                  style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
@@ -164,61 +176,79 @@ class ProposalCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final book = proposal.book;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: Image.network(
-                book['thumbnail'] ?? '',
+      padding: const EdgeInsets.all(14),
+      decoration: AppTheme.cardDecoration,
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: Image.network(
+              book['thumbnail'] ?? '',
+              width: 50,
+              height: 75,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
                 width: 50,
                 height: 75,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(width: 50, height: 75, color: Colors.grey.shade200),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(book['title'] ?? 'Unknown', style: theme.textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  Text('Proposed by ${proposal.proposedBy['displayName']}', style: theme.textTheme.bodySmall),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.how_to_vote, size: 14, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text('${proposal.voteCount} votes', style: theme.textTheme.labelSmall),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              children: [
-                IconButton(
-                  icon: Icon(
-                    proposal.hasVoted ? Icons.favorite : Icons.favorite_border,
-                    color: proposal.hasVoted ? Colors.red : null,
-                  ),
-                  onPressed: onVote,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                if (isAdmin && onSelect != null)
-                  TextButton(
-                    onPressed: onSelect,
-                    child: const Text('Select'),
-                  ),
+                child: const Icon(Icons.book, color: AppTheme.onSurfaceVariant),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  book['title'] ?? 'Unknown',
+                  style: GoogleFonts.notoSerif(fontWeight: FontWeight.w600, fontSize: 14),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Proposed by ${proposal.proposedBy['displayName']}',
+                  style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.how_to_vote, size: 14, color: AppTheme.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${proposal.voteCount} votes',
+                      style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12),
+                    ),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
+          ),
+          Column(
+            children: [
+              IconButton(
+                icon: Icon(
+                  proposal.hasVoted ? Icons.favorite : Icons.favorite_border,
+                  color: proposal.hasVoted ? AppTheme.error : AppTheme.outlineVariant,
+                ),
+                onPressed: onVote,
+              ),
+              if (isAdmin && onSelect != null)
+                TextButton(
+                  onPressed: onSelect,
+                  child: Text('Select', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -231,23 +261,50 @@ class MilestoneItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        leading: Icon(
-          milestone.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-          color: milestone.isCompleted ? Colors.green : (milestone.isOverdue ? Colors.red : Colors.grey),
-        ),
-        title: Text(milestone.title),
-        subtitle: Text('Goal: ${milestone.targetPage} pages • Due: ${_formatDate(milestone.deadline)}'),
-        trailing: milestone.isOverdue && !milestone.isCompleted
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-                child: const Text('Overdue', style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
-              )
-            : null,
+      padding: const EdgeInsets.all(14),
+      decoration: AppTheme.cardDecoration,
+      child: Row(
+        children: [
+          Icon(
+            milestone.isCompleted ? Icons.check_circle_rounded : Icons.circle_outlined,
+            color: milestone.isCompleted
+                ? AppTheme.primary
+                : (milestone.isOverdue ? AppTheme.error : AppTheme.outlineVariant),
+            size: 24,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(milestone.title, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                const SizedBox(height: 2),
+                Text(
+                  'Goal: ${milestone.targetPage} pages • Due: ${_formatDate(milestone.deadline)}',
+                  style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          if (milestone.isOverdue && !milestone.isCompleted)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: AppTheme.errorContainer,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Text(
+                'Overdue',
+                style: GoogleFonts.inter(
+                  color: AppTheme.onErrorContainer,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

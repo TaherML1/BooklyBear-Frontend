@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/books/data/book_repository.dart';
 import '../features/books/domain/book.dart';
 import '../features/library/data/library_repository.dart';
 import '../features/library/domain/user_book.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/books/presentation/book_reviews_section.dart';
+import '../features/gamification/data/gamification_repository.dart';
+import '../features/gamification/presentation/quiz_taking_screen.dart';
+import '../theme/app_theme.dart';
 
 // ─── Provider: Is this book already in the library? ─────────────────────────
 final userBookForIsbnProvider = FutureProvider.family<UserBook?, String>((
@@ -58,6 +62,7 @@ class _BookDetailsView extends ConsumerStatefulWidget {
 class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
   bool _isAddingToLibrary = false;
   bool _isUpdatingProgress = false;
+  bool _isGeneratingQuiz = false;
 
   // Local slider value (updated as user drags)
   late double _sliderPage;
@@ -80,14 +85,13 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
             content: Text('"${widget.book.title}" added to your library!'),
-            backgroundColor: Colors.green,
           ),
         );
       }
     } catch (e) {
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('$e')),
         );
       }
     } finally {
@@ -120,21 +124,34 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
           await _showRatingModal(ctx, userBook.id);
         } else {
           ScaffoldMessenger.of(ctx).showSnackBar(
-            SnackBar(
-              content: Text('Progress updated to page $page!'),
-              backgroundColor: Colors.green,
-            ),
+            SnackBar(content: Text('Progress updated to page $page!')),
           );
         }
       }
     } catch (e) {
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(content: Text('$e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('$e')),
         );
       }
     } finally {
       if (mounted) setState(() => _isUpdatingProgress = false);
+    }
+  }
+
+  void _takeBookQuiz() async {
+    setState(() => _isGeneratingQuiz = true);
+    try {
+      final quiz = await ref.read(gamificationRepositoryProvider).getBookQuiz(widget.book.id);
+      if (mounted) {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => QuizTakingScreen(quiz: quiz)));
+      }
+    } catch(e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate quiz: $e')));
+      }
+    } finally {
+      if (mounted) setState(() => _isGeneratingQuiz = false);
     }
   }
 
@@ -169,25 +186,25 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ── Cover Image ──────────────────────────────────────────────────
+          // ── Cover Image — editorial hero ───────────────────────────────
           Container(
             height: 380,
             width: double.infinity,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerLow,
+            decoration: const BoxDecoration(
+              color: AppTheme.surfaceContainerLow,
             ),
             child: Center(
               child: Padding(
                 padding: const EdgeInsets.all(32.0),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
                     imageUrl: book.coverImageUrl,
                     fit: BoxFit.contain,
                     placeholder: (_, __) =>
                         const Center(child: CircularProgressIndicator()),
                     errorWidget: (_, __, ___) =>
-                        const Icon(Icons.book, size: 100, color: Colors.grey),
+                        const Icon(Icons.book, size: 100, color: AppTheme.onSurfaceVariant),
                   ),
                 ),
               ),
@@ -195,46 +212,67 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
           ),
 
           Padding(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Metadata Tag
+                // Category — pill badge
                 if (book.categories.isNotEmpty) ...[
-                  Text(
-                    book.categories.first.toUpperCase(),
-                    style: textTheme.labelMedium?.copyWith(
-                      letterSpacing: 1.5,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryFixed,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      book.categories.first.toUpperCase(),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                        color: AppTheme.onPrimaryFixed,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                 ],
+
+                // Title — display serif
                 Text(
                   book.title,
                   style: textTheme.headlineLarge,
                 ),
                 const SizedBox(height: 8),
+
+                // Author
                 Text(
                   book.author,
                   style: textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: AppTheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 12),
+
+                // Page count & publisher
                 Row(
                   children: [
-                    const Icon(Icons.menu_book, size: 16, color: Colors.grey),
+                    const Icon(Icons.menu_book, size: 16, color: AppTheme.onSurfaceVariant),
                     const SizedBox(width: 4),
-                    Text('${book.pageCount} pages'),
-                    const Text(' · '),
-                    Text(book.publisher ?? 'Unknown publisher'),
+                    Text('${book.pageCount} pages', style: textTheme.labelSmall),
+                    Text(' · ', style: TextStyle(color: AppTheme.outlineVariant)),
+                    Expanded(
+                      child: Text(
+                        book.publisher ?? 'Unknown publisher',
+                        style: textTheme.labelSmall,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                   ],
                 ),
+
                 // ── Google Books Community Rating ────────────────────────
                 if (book.averageRating != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       ...List.generate(5, (i) {
@@ -248,30 +286,24 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                               : half
                                   ? Icons.star_half_rounded
                                   : Icons.star_outline_rounded,
-                          color: Colors.amber,
+                          color: const Color(0xFFD4A84B), // warm gold, editorial
                           size: 18,
                         );
                       }),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(
-                        '${book.averageRating!.toStringAsFixed(1)}'  
+                        '${book.averageRating!.toStringAsFixed(1)}'
                         '${book.ratingsCount != null ? ' (${_formatCount(book.ratingsCount!)})' : ''}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Google Books',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.grey[400],
+                        style: GoogleFonts.inter(
+                          color: AppTheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
                         ),
                       ),
                     ],
                   ),
                 ],
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
                 // ── Library Section ──────────────────────────────────────
                 userBookAsync.when(
@@ -283,25 +315,29 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                       // Book is NOT in library — show Add button
                       return SizedBox(
                         width: double.infinity,
-                        child: FilledButton.icon(
-                          onPressed: _isAddingToLibrary
-                              ? null
-                              : () => _addToLibrary(context),
-                          icon: _isAddingToLibrary
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.add),
-                          label: const Text('Add to Library'),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: AppTheme.primaryGradient,
+                            borderRadius: BorderRadius.circular(32),
+                            boxShadow: AppTheme.ambientShadow,
+                          ),
+                          child: FilledButton.icon(
+                            onPressed: _isAddingToLibrary
+                                ? null
+                                : () => _addToLibrary(context),
+                            icon: _isAddingToLibrary
+                                ? const SizedBox(
+                                    width: 18, height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2, color: AppTheme.onPrimary,
+                                    ),
+                                  )
+                                : const Icon(Icons.add),
+                            label: const Text('Add to Library'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                            ),
                           ),
                         ),
                       );
@@ -321,27 +357,23 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Status badge
+                        // Status badge — pill style
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
-                            color: _statusColor(
-                              userBook.status,
-                            ).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
+                            color: _statusColor(userBook.status).withAlpha(25),
+                            borderRadius: BorderRadius.circular(100),
                           ),
                           child: Text(
                             _statusLabel(userBook.status),
-                            style: TextStyle(
+                            style: GoogleFonts.inter(
                               color: _statusColor(userBook.status),
                               fontWeight: FontWeight.w600,
+                              fontSize: 13,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 24),
 
                         // Page progress slider
                         if (userBook.status != ReadingStatus.read) ...[
@@ -350,23 +382,24 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                             children: [
                               Text(
                                 'Reading Progress',
-                                style: textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.bold,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                  color: AppTheme.onSurface,
                                 ),
                               ),
                               Text(
                                 '${_sliderPage.toInt()} / ${book.pageCount}',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
+                                style: GoogleFonts.inter(
+                                  color: AppTheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
                                 ),
                               ),
                             ],
                           ),
                           Slider(
-                            value: _sliderPage.clamp(
-                              0,
-                              book.pageCount.toDouble(),
-                            ),
+                            value: _sliderPage.clamp(0, book.pageCount.toDouble()),
                             min: 0,
                             max: book.pageCount.toDouble(),
                             divisions: book.pageCount > 0 ? book.pageCount : 1,
@@ -376,51 +409,81 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                           const SizedBox(height: 8),
                           SizedBox(
                             width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: _isUpdatingProgress
-                                  ? null
-                                  : () => _updateProgress(context, userBook),
-                              icon: _isUpdatingProgress
-                                  ? const SizedBox(
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Icon(Icons.save_alt),
-                              label: Text(
-                                _sliderPage.toInt() >= book.pageCount
-                                    ? '🎉 Mark as Finished'
-                                    : 'Save Progress',
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.primaryGradient,
+                                borderRadius: BorderRadius.circular(32),
                               ),
-                                style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
-                                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                              child: FilledButton.icon(
+                                onPressed: _isUpdatingProgress
+                                    ? null
+                                    : () => _updateProgress(context, userBook),
+                                icon: _isUpdatingProgress
+                                    ? const SizedBox(
+                                        width: 18, height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: AppTheme.onPrimary,
+                                        ),
+                                      )
+                                    : const Icon(Icons.save_alt),
+                                label: Text(
+                                  _sliderPage.toInt() >= book.pageCount
+                                      ? '🎉 Mark as Finished'
+                                      : 'Save Progress',
                                 ),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                ),
+                              ),
                             ),
                           ),
                         ],
                         if (userBook.status == ReadingStatus.read) ...[
                           const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 20,
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryFixed.withAlpha(50),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 20),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'You have finished this book!',
+                                    style: GoogleFonts.inter(
+                                      color: AppTheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                gradient: AppTheme.primaryGradient,
+                                borderRadius: BorderRadius.circular(32),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'You have finished this book!',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.bold,
+                              child: FilledButton.icon(
+                                onPressed: _isGeneratingQuiz ? null : _takeBookQuiz,
+                                icon: _isGeneratingQuiz
+                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
+                                  : const Icon(Icons.school_outlined),
+                                label: const Text('Take Book Quiz'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: Colors.transparent,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ],
                       ],
@@ -428,17 +491,14 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                   },
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 36),
 
-                // ── Description ──────────────────────────────────────────
-                Text(
-                  'About the book',
-                  style: textTheme.headlineMedium,
-                ),
-                const SizedBox(height: 8),
+                // ── Description — editorial "About" ─────────────────────
+                Text('About the book', style: textTheme.headlineMedium),
+                const SizedBox(height: 12),
                 Text(
                   book.description ?? 'No description available.',
-                  style: textTheme.bodyMedium?.copyWith(height: 1.5),
+                  style: textTheme.bodyMedium?.copyWith(height: 1.6),
                 ),
                 const SizedBox(height: 48),
 
@@ -454,10 +514,10 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
   }
 
   Color _statusColor(ReadingStatus s) => switch (s) {
-    ReadingStatus.reading => Colors.blue,
-    ReadingStatus.read => Colors.green,
-    ReadingStatus.toRead => Colors.orange,
-    ReadingStatus.dnf => Colors.grey,
+    ReadingStatus.reading => AppTheme.primary,
+    ReadingStatus.read => AppTheme.primary,
+    ReadingStatus.toRead => AppTheme.secondary,
+    ReadingStatus.dnf => AppTheme.outline,
   };
 
   String _statusLabel(ReadingStatus s) => switch (s) {
@@ -474,7 +534,7 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
   }
 }
 
-// ─── Star Rating Bottom Sheet ─────────────────────────────────────────────────
+// ─── Star Rating Bottom Sheet — Editorial ─────────────────────────────────────
 class _StarRatingSheet extends StatefulWidget {
   final String bookTitle;
   final Future<void> Function(int rating) onRate;
@@ -493,7 +553,7 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 40),
@@ -504,33 +564,44 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
           Container(
             width: 40, height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: AppTheme.outlineVariant,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
 
           // Trophy
           const Text('🎉', style: TextStyle(fontSize: 48)),
-          const SizedBox(height: 12),
-          const Text(
+          const SizedBox(height: 14),
+          Text(
             'You finished the book!',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: GoogleFonts.notoSerif(
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.onSurface,
+            ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             widget.bookTitle,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            style: GoogleFonts.inter(
+              color: AppTheme.onSurfaceVariant,
+              fontSize: 14,
+            ),
           ),
           const SizedBox(height: 28),
 
           // Stars
-          const Text(
+          Text(
             'How would you rate it?',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.onSurface,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -544,44 +615,49 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
                   child: Icon(
                     filled ? Icons.star_rounded : Icons.star_outline_rounded,
                     size: 48,
-                    color: filled ? Colors.amber : Colors.grey[300],
+                    color: filled ? const Color(0xFFD4A84B) : AppTheme.outlineVariant,
                   ),
                 ),
               );
             }),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             _selectedRating == 0 ? 'Tap a star to rate'
             : ['', '😕 Poor', '😐 Fair', '🙂 Good', '😊 Great', '🤩 Amazing!'][_selectedRating],
-            style: TextStyle(color: Colors.grey[500], fontSize: 13),
+            style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 13),
           ),
           const SizedBox(height: 28),
 
           // Submit
           SizedBox(
             width: double.infinity,
-            child: FilledButton(
-              onPressed: (_selectedRating == 0 || _saving) ? null : () async {
-                setState(() => _saving = true);
-                await widget.onRate(_selectedRating);
-                if (mounted) setState(() => _saving = false);
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: Colors.amber[700],
-                minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(32),
               ),
-              child: _saving
-                ? const SizedBox(width: 22, height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Submit Rating', style: TextStyle(fontSize: 16)),
+              child: FilledButton(
+                onPressed: (_selectedRating == 0 || _saving) ? null : () async {
+                  setState(() => _saving = true);
+                  await widget.onRate(_selectedRating);
+                  if (mounted) setState(() => _saving = false);
+                },
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  minimumSize: const Size(double.infinity, 52),
+                ),
+                child: _saving
+                  ? const SizedBox(width: 22, height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
+                  : Text('Submit Rating', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
             ),
           ),
           const SizedBox(height: 10),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Skip', style: TextStyle(color: Colors.grey)),
+            child: Text('Skip', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant)),
           ),
         ],
       ),

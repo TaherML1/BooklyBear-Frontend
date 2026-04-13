@@ -2,9 +2,11 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/library/data/library_repository.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/gamification/presentation/gamification_providers.dart';
+import '../theme/app_theme.dart';
 
 // ─── Timer durations a user can pick ────────────────────────────────────────
 const _durations = [
@@ -125,7 +127,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not save session: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Could not save session: $e')),
         );
       }
     } finally {
@@ -137,14 +139,14 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E), // deep calm dark blue
+      backgroundColor: AppTheme.primary, // deep scholarly green
       body: SafeArea(
         child: _finished ? _buildCompletionView() : _buildTimerView(),
       ),
     );
   }
 
-  // ── Active Timer View ─────────────────────────────────────────────────────
+  // ── Active Timer View — Scholarly Zen ──────────────────────────────────
   Widget _buildTimerView() {
     return Column(
       children: [
@@ -154,15 +156,21 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.white70),
+                icon: Icon(Icons.close, color: AppTheme.primaryFixedDim.withAlpha(180)),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               const Spacer(),
-              Text(
-                widget.bookTitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              Flexible(
+                child: Text(
+                  widget.bookTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.notoSerif(
+                    color: AppTheme.primaryFixedDim.withAlpha(180),
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ),
               const Spacer(),
               const SizedBox(width: 48), // balance the close button
@@ -171,6 +179,35 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
         ),
 
         const Spacer(),
+
+        // ── Session Description ────────────────────────────────────────
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Text(
+            'Deep Reading Session.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.notoSerif(
+              color: AppTheme.primaryFixedDim,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Text(
+            'Immerse yourself in the narrative. Your progress is being archived.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(
+              color: AppTheme.primaryFixedDim.withAlpha(140),
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 32),
 
         // ── Duration picker (only visible when not running) ────────────────
         if (!_running)
@@ -181,7 +218,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
               children: _durations.map((d) {
                 final selected = d.minutes == _selectedMinutes;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
                   child: ChoiceChip(
                     label: Text(d.label),
                     selected: selected,
@@ -191,12 +228,15 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
                         _resetToSelected();
                       });
                     },
-                    selectedColor: const Color(0xFF7B61FF),
-                    backgroundColor: Colors.white10,
-                    labelStyle: TextStyle(
-                      color: selected ? Colors.white : Colors.white54,
+                    selectedColor: AppTheme.primaryFixed,
+                    backgroundColor: AppTheme.primaryContainer,
+                    labelStyle: GoogleFonts.inter(
+                      color: selected ? AppTheme.onPrimaryFixed : AppTheme.primaryFixedDim.withAlpha(160),
                       fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
+                    shape: const StadiumBorder(),
+                    side: BorderSide.none,
                   ),
                 );
               }).toList(),
@@ -223,8 +263,8 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
                 children: [
                   Text(
                     _timeLabel,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: GoogleFonts.inter(
+                      color: AppTheme.primaryFixedDim,
                       fontSize: 56,
                       fontWeight: FontWeight.w200,
                       letterSpacing: 4,
@@ -233,7 +273,10 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
                   const SizedBox(height: 4),
                   Text(
                     _running ? 'Focus Mode' : 'Ready',
-                    style: const TextStyle(color: Colors.white38, fontSize: 13),
+                    style: GoogleFonts.inter(
+                      color: AppTheme.primaryFixedDim.withAlpha(100),
+                      fontSize: 13,
+                    ),
                   ),
                 ],
               ),
@@ -243,7 +286,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
 
         const SizedBox(height: 48),
 
-        // ── Play / Pause button ────────────────────────────────────────────
+        // ── Play / Pause button — editorial green gradient ─────────────
         GestureDetector(
           onTap: _startPause,
           child: Container(
@@ -252,13 +295,13 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
-                colors: [Color(0xFF7B61FF), Color(0xFF5A45FF)],
+                colors: [AppTheme.primaryFixed, AppTheme.primaryFixedDim],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF7B61FF).withValues(alpha: 0.45),
+                  color: AppTheme.primaryFixedDim.withAlpha(80),
                   blurRadius: 24,
                   spreadRadius: 4,
                 ),
@@ -266,7 +309,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
             ),
             child: Icon(
               _running ? Icons.pause_rounded : Icons.play_arrow_rounded,
-              color: Colors.white,
+              color: AppTheme.onPrimaryFixed,
               size: 42,
             ),
           ),
@@ -277,19 +320,19 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
         // ── Reset link ────────────────────────────────────────────────────
         TextButton(
           onPressed: () => setState(_resetToSelected),
-          child: const Text('Reset', style: TextStyle(color: Colors.white38)),
+          child: Text('Reset', style: GoogleFonts.inter(color: AppTheme.primaryFixedDim.withAlpha(100))),
         ),
 
         const Spacer(),
 
-        // ── Motivational quote ────────────────────────────────────────────
+        // ── Motivational quote — serif italic ─────────────────────────────
         Padding(
           padding: const EdgeInsets.all(24),
           child: Text(
             '"A reader lives a thousand lives before he dies."',
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white24,
+            style: GoogleFonts.notoSerif(
+              color: AppTheme.primaryFixedDim.withAlpha(80),
               fontSize: 13,
               fontStyle: FontStyle.italic,
             ),
@@ -299,27 +342,27 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
     );
   }
 
-  // ── Completion / Session Log View ─────────────────────────────────────────
+  // ── Completion / Session Log View — Editorial Celebration ──────────────
   Widget _buildCompletionView() {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Trophy
+          // Trophy — warm gold accent
           Container(
             width: 100,
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: const LinearGradient(
-                colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                colors: [Color(0xFFD4A84B), Color(0xFFB8923F)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.orange.withValues(alpha: 0.4),
+                  color: const Color(0xFFD4A84B).withAlpha(80),
                   blurRadius: 30,
                   spreadRadius: 6,
                 ),
@@ -328,22 +371,33 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
             child: const Icon(Icons.emoji_events_rounded, size: 52, color: Colors.white),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Session Complete! 🎉',
-            style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+          Text(
+            'Session Complete!',
+            style: GoogleFonts.notoSerif(
+              color: AppTheme.primaryFixedDim,
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Great job reading for $_selectedMinutes minutes!',
+            'You focused for $_selectedMinutes minutes of deep reading. +45 XP earned.',
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white54, fontSize: 14),
+            style: GoogleFonts.inter(
+              color: AppTheme.primaryFixedDim.withAlpha(140),
+              fontSize: 14,
+              height: 1.5,
+            ),
           ),
           const SizedBox(height: 40),
 
           // ── Pages read input ─────────────────────────────────────────────
-          const Text(
+          Text(
             'How many pages did you read?',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            style: GoogleFonts.inter(
+              color: AppTheme.primaryFixedDim.withAlpha(200),
+              fontSize: 15,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
@@ -359,8 +413,8 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
                 child: Text(
                   '$_pagesRead',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: GoogleFonts.inter(
+                    color: AppTheme.primaryFixedDim,
                     fontSize: 48,
                     fontWeight: FontWeight.w200,
                   ),
@@ -378,20 +432,31 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
           // ── Log Session button ────────────────────────────────────────────
           SizedBox(
             width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: _loggingSession ? null : _logAndClose,
-              icon: _loggingSession
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                    )
-                  : const Icon(Icons.check_circle_outline),
-              label: const Text('Log Session & Earn XP', style: TextStyle(fontSize: 16)),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFF7B61FF),
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppTheme.primaryFixed, AppTheme.primaryFixedDim],
+                ),
+                borderRadius: BorderRadius.circular(32),
+              ),
+              child: FilledButton.icon(
+                onPressed: _loggingSession ? null : _logAndClose,
+                icon: _loggingSession
+                    ? const SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimaryFixed),
+                      )
+                    : const Icon(Icons.check_circle_outline),
+                label: Text(
+                  'Log Session & Earn XP',
+                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  foregroundColor: AppTheme.onPrimaryFixed,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                ),
               ),
             ),
           ),
@@ -400,7 +465,10 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
           // Skip logging option
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Skip logging', style: TextStyle(color: Colors.white38)),
+            child: Text(
+              'Skip logging',
+              style: GoogleFonts.inter(color: AppTheme.primaryFixedDim.withAlpha(100)),
+            ),
           ),
         ],
       ),
@@ -408,7 +476,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
   }
 }
 
-// ─── Arc Progress Painter ─────────────────────────────────────────────────────
+// ─── Arc Progress Painter — Editorial Green ───────────────────────────────────
 class _ArcPainter extends CustomPainter {
   final double progress;
   final bool running;
@@ -420,22 +488,22 @@ class _ArcPainter extends CustomPainter {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 10;
 
-    // Track
+    // Track — subtle
     final trackPaint = Paint()
-      ..color = Colors.white10
+      ..color = AppTheme.primaryContainer.withAlpha(80)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
+      ..strokeWidth = 8
       ..strokeCap = StrokeCap.round;
 
     canvas.drawCircle(center, radius, trackPaint);
 
-    // Progress arc
+    // Progress arc — green gradient
     final progressPaint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFF7B61FF), Color(0xFF00C6FF)],
+        colors: [AppTheme.primaryFixed, AppTheme.primaryFixedDim],
       ).createShader(Rect.fromCircle(center: center, radius: radius))
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 10
+      ..strokeWidth = 8
       ..strokeCap = StrokeCap.round;
 
     canvas.drawArc(
@@ -467,11 +535,11 @@ class _PageButton extends StatelessWidget {
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: Colors.white10,
+          color: AppTheme.primaryContainer.withAlpha(120),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white12),
+          border: Border.all(color: AppTheme.primaryFixedDim.withAlpha(30)),
         ),
-        child: Icon(icon, color: Colors.white, size: 26),
+        child: Icon(icon, color: AppTheme.primaryFixedDim, size: 26),
       ),
     );
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/user/data/profile_repository.dart';
 import '../features/social/data/friends_repository.dart';
+import '../theme/app_theme.dart';
 
 class PublicProfileScreen extends ConsumerStatefulWidget {
   final String username;
@@ -53,44 +55,57 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
           final friendshipAsync = ref.watch(friendshipStatusProvider(user.id));
 
           return ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(24),
             children: [
               Center(
                 child: CircleAvatar(
                   radius: 44,
-                  backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                  backgroundColor: AppTheme.primaryFixed,
                   backgroundImage: user.avatarUrl != null ? CachedNetworkImageProvider(user.avatarUrl!) : null,
                   child: user.avatarUrl == null
                       ? Text(
                           user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?',
-                          style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.onPrimary),
+                          style: GoogleFonts.notoSerif(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.onPrimaryFixed),
                         )
                       : null,
                 ),
               ),
               const SizedBox(height: 16),
               Center(child: Text(user.displayName, style: Theme.of(context).textTheme.headlineLarge)),
-              Center(child: Text('@${user.username}', style: Theme.of(context).textTheme.bodyMedium)),
+              Center(child: Text('@${user.username}', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 14))),
               if (user.bio != null && user.bio!.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Center(child: Text(user.bio!, style: Theme.of(context).textTheme.bodySmall)),
+                Center(child: Text(user.bio!, style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 13), textAlign: TextAlign.center)),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
               
               friendshipAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(child: Text('Error loading friendship status')),
+                error: (err, _) => Center(child: Text('Error loading friendship status', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant))),
                 data: (friendship) {
                   if (friendship.status == 'none') {
-                    return FilledButton.icon(
-                      onPressed: () => _sendRequest(user.username),
-                      icon: const Icon(Icons.person_add),
-                      label: const Text('Add Friend'),
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient,
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                      child: FilledButton.icon(
+                        onPressed: () => _sendRequest(user.username),
+                        icon: const Icon(Icons.person_add),
+                        label: const Text('Add Friend'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                      ),
                     );
                   } else if (friendship.status == 'PENDING') {
                     return const OutlinedButton(onPressed: null, child: Text('Request Sent'));
                   } else if (friendship.status == 'ACCEPTED') {
-                    return const OutlinedButton(onPressed: null, child: Text('Friends'));
+                    return OutlinedButton(
+                      onPressed: null,
+                      child: Text('Friends ✓', style: GoogleFonts.inter(color: AppTheme.primary)),
+                    );
                   } else if (friendship.status == 'BLOCKED') {
                     return const OutlinedButton(onPressed: null, child: Text('Blocked'));
                   }
@@ -100,22 +115,34 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 onPressed: () => _blockUser(user.id),
-                icon: const Icon(Icons.block, color: Colors.red),
-                label: const Text('Block User', style: TextStyle(color: Colors.red)),
+                icon: const Icon(Icons.block, color: AppTheme.error),
+                label: Text('Block User', style: GoogleFonts.inter(color: AppTheme.error)),
               ),
-              const SizedBox(height: 24),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Text('Level $currentLevel', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      LinearProgressIndicator(value: xpPercent),
-                      const SizedBox(height: 8),
-                      Text('$xpProgress / $xpNeeded XP'),
-                    ],
-                  ),
+              const SizedBox(height: 28),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: AppTheme.cardDecoration,
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      child: Text(
+                        'Level $currentLevel',
+                        style: GoogleFonts.inter(color: AppTheme.onPrimary, fontWeight: FontWeight.w700, fontSize: 13),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(100),
+                      child: LinearProgressIndicator(value: xpPercent, minHeight: 4),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('$xpProgress / $xpNeeded XP', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12)),
+                  ],
                 ),
               ),
             ],

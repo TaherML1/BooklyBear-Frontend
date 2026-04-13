@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/user/data/profile_repository.dart';
+import '../theme/app_theme.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   final String initialDisplayName;
@@ -51,20 +53,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated! ✅'),
-            backgroundColor: Colors.green,
-          ),
+          const SnackBar(content: Text('Profile updated! ✅')),
         );
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     } finally {
@@ -74,8 +70,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile'),
@@ -88,9 +82,13 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text(
+                : Text(
                     'Save',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: AppTheme.primary,
+                    ),
                   ),
           ),
         ],
@@ -98,23 +96,23 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(24),
           children: [
-            // Avatar placeholder (future feature)
+            // Avatar placeholder
             Center(
               child: Stack(
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: theme.colorScheme.primaryContainer,
+                    backgroundColor: AppTheme.primaryFixed,
                     child: Text(
                       _nameController.text.isNotEmpty
                           ? _nameController.text[0].toUpperCase()
                           : '?',
-                      style: TextStyle(
+                      style: GoogleFonts.notoSerif(
                         fontSize: 38,
                         fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onPrimary,
+                        color: AppTheme.onPrimaryFixed,
                       ),
                     ),
                   ),
@@ -123,11 +121,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     right: 0,
                     child: Container(
                       padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primary,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                      child: const Icon(Icons.camera_alt, size: 16, color: AppTheme.onPrimary),
                     ),
                   ),
                 ],
@@ -139,9 +137,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             // Display Name
             Text(
               'Display Name',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              style: GoogleFonts.inter(
+                color: AppTheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
             const SizedBox(height: 8),
@@ -165,9 +164,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             // Bio
             Text(
               'Bio',
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
+              style: GoogleFonts.inter(
+                color: AppTheme.onSurfaceVariant,
                 fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
             const SizedBox(height: 8),
@@ -187,15 +187,20 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
             const SizedBox(height: 32),
 
-            // Save Button (also available in AppBar)
-            FilledButton.icon(
-              onPressed: _isSaving ? null : _save,
-              icon: const Icon(Icons.check),
-              label: const Text('Save Changes'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 52),
-                backgroundColor: theme.colorScheme.primaryContainer,
-                foregroundColor: theme.colorScheme.onPrimary,
+            // Save Button
+            Container(
+              decoration: BoxDecoration(
+                gradient: AppTheme.primaryGradient,
+                borderRadius: BorderRadius.circular(32),
+              ),
+              child: FilledButton.icon(
+                onPressed: _isSaving ? null : _save,
+                icon: const Icon(Icons.check),
+                label: const Text('Save Changes'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  minimumSize: const Size(double.infinity, 52),
+                ),
               ),
             ),
           ],

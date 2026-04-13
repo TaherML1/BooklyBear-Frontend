@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/groups/data/groups_repository.dart';
+import '../theme/app_theme.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   const CreateGroupScreen({super.key});
@@ -30,7 +32,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       if (mounted) {
         context.pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Group created successfully!')),
+          const SnackBar(content: Text('Club created successfully!')),
         );
       }
     } catch (e) {
@@ -47,36 +49,75 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Create Group')),
+      appBar: AppBar(title: Text('Create Club', style: Theme.of(context).textTheme.headlineMedium)),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Text(
+                'Club Name',
+                style: GoogleFonts.inter(
+                  color: AppTheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Group Name', border: OutlineInputBorder()),
+                decoration: const InputDecoration(hintText: 'e.g. Book Lovers United'),
                 validator: (val) => val == null || val.isEmpty ? 'Required' : null,
                 onSaved: (val) => _name = val ?? '',
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              Text(
+                'Description',
+                style: GoogleFonts.inter(
+                  color: AppTheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
-                decoration: const InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                decoration: const InputDecoration(hintText: 'What is your club about?'),
                 maxLines: 3,
                 onSaved: (val) => _description = val ?? '',
               ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('Private Group'),
-                value: _isPrivate,
-                onChanged: (val) => setState(() => _isPrivate = val),
+              const SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: AppTheme.ambientShadow,
+                ),
+                child: SwitchListTile(
+                  title: Text('Private Club', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                  subtitle: Text('Only invited members can join', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12)),
+                  value: _isPrivate,
+                  onChanged: (val) => setState(() => _isPrivate = val),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
               ),
-              const SizedBox(height: 32),
-              FilledButton(
-                onPressed: _isLoading ? null : _submit,
-                child: _isLoading ? const CircularProgressIndicator() : const Text('Create'),
-              )
+              const SizedBox(height: 36),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppTheme.primaryGradient,
+                  borderRadius: BorderRadius.circular(32),
+                ),
+                child: FilledButton(
+                  onPressed: _isLoading ? null : _submit,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    minimumSize: const Size(double.infinity, 52),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
+                      : Text('Create Club', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                ),
+              ),
             ],
           ),
         ),

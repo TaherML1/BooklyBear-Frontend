@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../features/groups/data/groups_repository.dart';
 import '../features/user/data/profile_repository.dart';
@@ -72,7 +71,7 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
           length: 4,
           child: Scaffold(
             appBar: AppBar(
-              title: Text(group.name, style: GoogleFonts.notoSerif(fontWeight: FontWeight.bold)),
+              title: Text(group.name, style: Theme.of(context).textTheme.headlineMedium),
               actions: [
                 if (isMember)
                   PopupMenuButton(
@@ -103,10 +102,19 @@ class _GroupDetailsScreenState extends ConsumerState<GroupDetailsScreen> {
               ],
             ),
             floatingActionButton: !isMember
-                ? FloatingActionButton.extended(
-                    onPressed: _isActionLoading ? null : _joinGroup,
-                    icon: const Icon(Icons.group_add),
-                    label: const Text('Join Club'),
+                ? Container(
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.primaryGradient,
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: FloatingActionButton.extended(
+                      onPressed: _isActionLoading ? null : _joinGroup,
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: AppTheme.onPrimary,
+                      elevation: 0,
+                      icon: const Icon(Icons.group_add),
+                      label: Text('Join Club', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                    ),
                   )
                 : null,
           ),
@@ -154,7 +162,9 @@ class _ProgressTab extends ConsumerWidget {
         const SizedBox(height: 32),
         
         // Progress List
-        Text('Member Progress', style: Theme.of(context).textTheme.titleLarge),
+        Text('Member Progress', style: GoogleFonts.notoSerif(
+          fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.onSurface,
+        )),
         const SizedBox(height: 16),
         progressAsync.when(
           data: (data) => Column(
@@ -175,12 +185,11 @@ class _CurrentBookHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (book == null) return const SizedBox.shrink();
-    final theme = Theme.of(context);
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryContainer.withAlpha(20),
+        color: AppTheme.primaryFixed.withAlpha(60),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -192,6 +201,14 @@ class _CurrentBookHeader extends StatelessWidget {
               width: 70,
               height: 100,
               fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                width: 70, height: 100,
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.book, color: AppTheme.onSurfaceVariant),
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -199,11 +216,32 @@ class _CurrentBookHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Currently Reading', style: theme.textTheme.labelMedium?.copyWith(color: AppTheme.primary)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  child: Text(
+                    'CURRENTLY READING',
+                    style: GoogleFonts.inter(
+                      color: AppTheme.onPrimary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  book!['title'] ?? 'Unknown',
+                  style: GoogleFonts.notoSerif(fontWeight: FontWeight.w600, fontSize: 16),
+                ),
                 const SizedBox(height: 4),
-                Text(book!['title'] ?? 'Unknown', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text('${book!['pageCount']} pages total', style: theme.textTheme.bodySmall),
+                Text(
+                  '${book!['pageCount']} pages total',
+                  style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -222,17 +260,23 @@ class _NoBookHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.grey.withOpacity(0.05),
+        color: AppTheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
       ),
       child: Column(
         children: [
-          const Icon(Icons.auto_stories_outlined, size: 40, color: Colors.grey),
+          const Icon(Icons.auto_stories_outlined, size: 40, color: AppTheme.outlineVariant),
           const SizedBox(height: 12),
-          const Text('No book selected yet', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(
+            'No book selected yet',
+            style: GoogleFonts.notoSerif(fontWeight: FontWeight.w600, color: AppTheme.onSurface),
+          ),
           const SizedBox(height: 4),
-          const Text('Go to the Voting tab to propose one!', textAlign: TextAlign.center),
+          Text(
+            'Go to the Voting tab to propose one!',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 13),
+          ),
         ],
       ),
     );
@@ -245,13 +289,17 @@ class _StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _StatItem(label: 'Total Pages', value: '${stats.totalPagesRead}'),
-        _StatItem(label: 'Finished', value: '${stats.booksFinished}'),
-        _StatItem(label: 'Hours', value: '${stats.totalHours}'),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: AppTheme.cardDecoration,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _StatItem(label: 'Total Pages', value: '${stats.totalPagesRead}'),
+          _StatItem(label: 'Finished', value: '${stats.booksFinished}'),
+          _StatItem(label: 'Hours', value: '${stats.totalHours}'),
+        ],
+      ),
     );
   }
 }
@@ -265,8 +313,16 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
+        Text(
+          value,
+          style: GoogleFonts.notoSerif(
+            fontSize: 22,
+            color: AppTheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(label, style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 11)),
       ],
     );
   }
@@ -282,11 +338,25 @@ class _ActivityTab extends ConsumerWidget {
     final activityAsync = ref.watch(groupActivityProvider(groupId));
 
     return activityAsync.when(
-      data: (activities) => ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: activities.length,
-        itemBuilder: (context, index) => ActivityItem(activity: activities[index]),
-      ),
+      data: (activities) {
+        if (activities.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.forum_outlined, size: 64, color: AppTheme.outlineVariant),
+                const SizedBox(height: 12),
+                Text('No activity yet.', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant)),
+              ],
+            ),
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: activities.length,
+          itemBuilder: (context, index) => ActivityItem(activity: activities[index]),
+        );
+      },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Error: $err')),
     );
@@ -311,7 +381,9 @@ class _VotingTab extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Book Proposals', style: Theme.of(context).textTheme.titleLarge),
+            Text('Book Proposals', style: GoogleFonts.notoSerif(
+              fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.onSurface,
+            )),
             if (isMember)
               TextButton.icon(
                 onPressed: () {
@@ -328,7 +400,15 @@ class _VotingTab extends ConsumerWidget {
         const SizedBox(height: 16),
         proposalsAsync.when(
           data: (proposals) => proposals.isEmpty
-              ? const Center(child: Text('No active proposals. Start one!'))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Text(
+                      'No active proposals. Start one!',
+                      style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                    ),
+                  ),
+                )
               : Column(
                   children: proposals.map((p) => ProposalCard(
                     proposal: p,
@@ -375,7 +455,9 @@ class _ScheduleTab extends ConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Reading Schedule', style: Theme.of(context).textTheme.titleLarge),
+            Text('Reading Schedule', style: GoogleFonts.notoSerif(
+              fontWeight: FontWeight.w600, fontSize: 18, color: AppTheme.onSurface,
+            )),
             if (isAdmin)
               IconButton(
                 onPressed: () {
@@ -384,14 +466,22 @@ class _ScheduleTab extends ConsumerWidget {
                       builder: (context) => CreateMilestoneDialog(groupId: groupId),
                     );
                 },
-                icon: const Icon(Icons.add_circle_outline),
+                icon: const Icon(Icons.add_circle_outline, color: AppTheme.primary),
               ),
           ],
         ),
         const SizedBox(height: 16),
         milestonesAsync.when(
           data: (milestones) => milestones.isEmpty
-              ? const Center(child: Text('No milestones set.'))
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Text(
+                      'No milestones set.',
+                      style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                    ),
+                  ),
+                )
               : Column(
                   children: milestones.map((m) => MilestoneItem(milestone: m)).toList(),
                 ),

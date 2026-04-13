@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/groups/data/groups_repository.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../theme/app_theme.dart';
@@ -12,49 +13,70 @@ class ProposeBookDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final libraryAsync = ref.watch(libraryProvider);
-    final theme = Theme.of(context);
 
     return AlertDialog(
-      title: const Text('Propose a Book'),
+      title: Text('Propose a Book', style: GoogleFonts.notoSerif(fontWeight: FontWeight.w600)),
       content: SizedBox(
         width: double.maxFinite,
         height: 400,
         child: libraryAsync.when(
           data: (userBooks) {
             if (userBooks.isEmpty) {
-              return const Center(child: Text('Add some books to your library first!'));
+              return Center(
+                child: Text(
+                  'Add some books to your library first!',
+                  style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                ),
+              );
             }
-            return ListView.builder(
+            return ListView.separated(
               shrinkWrap: true,
               itemCount: userBooks.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
                 final ub = userBooks[index];
-                return ListTile(
-                  leading: Image.network(
-                    ub.book.coverImageUrl,
-                    width: 40,
-                    errorBuilder: (_, __, ___) => const Icon(Icons.book),
+                return Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  title: Text(ub.book.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: Text(ub.book.author),
-                  onTap: () async {
-                    try {
-                      await ref.read(groupsRepositoryProvider).proposeBook(groupId, ub.book.id);
-                      if (context.mounted) {
-                        ref.invalidate(groupProposalsProvider(groupId));
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Book proposed!')),
-                        );
+                  child: ListTile(
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Image.network(
+                        ub.book.coverImageUrl,
+                        width: 40,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => const Icon(Icons.book, color: AppTheme.onSurfaceVariant),
+                      ),
+                    ),
+                    title: Text(
+                      ub.book.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.notoSerif(fontWeight: FontWeight.w600, fontSize: 14),
+                    ),
+                    subtitle: Text(ub.book.author, style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    onTap: () async {
+                      try {
+                        await ref.read(groupsRepositoryProvider).proposeBook(groupId, ub.book.id);
+                        if (context.mounted) {
+                          ref.invalidate(groupProposalsProvider(groupId));
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Book proposed!')),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString())),
+                          );
+                        }
                       }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.toString())),
-                        );
-                      }
-                    }
-                  },
+                    },
+                  ),
                 );
               },
             );
@@ -64,7 +86,10 @@ class ProposeBookDialog extends ConsumerWidget {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant)),
+        ),
       ],
     );
   }
@@ -94,10 +119,8 @@ class _CreateMilestoneDialogState extends ConsumerState<CreateMilestoneDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return AlertDialog(
-      title: const Text('Add Reading Goal'),
+      title: Text('Add Reading Goal', style: GoogleFonts.notoSerif(fontWeight: FontWeight.w600)),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -113,25 +136,38 @@ class _CreateMilestoneDialogState extends ConsumerState<CreateMilestoneDialog> {
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 16),
-            ListTile(
-              title: const Text('Deadline'),
-              subtitle: Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}'),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _selectedDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                );
-                if (picked != null) setState(() => _selectedDate = picked);
-              },
+            Container(
+              decoration: BoxDecoration(
+                color: AppTheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                title: Text('Deadline', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                  '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                  style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 13),
+                ),
+                trailing: const Icon(Icons.calendar_today, color: AppTheme.primary),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: context,
+                    initialDate: _selectedDate,
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (picked != null) setState(() => _selectedDate = picked);
+                },
+              ),
             ),
           ],
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Cancel', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant)),
+        ),
         _isLoading
             ? const Center(child: CircularProgressIndicator())
             : FilledButton(

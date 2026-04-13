@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/auth/presentation/auth_controller.dart';
+import '../theme/app_theme.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -43,7 +45,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error.toString()),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -53,18 +55,32 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       appBar: AppBar(title: const Text("Create Account")),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(32.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Join BooklyBear 🐻',
+                  'Join BooklyBear',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: GoogleFonts.notoSerif(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 6),
+                Text(
+                  'Begin your reading journey.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.notoSerif(
+                    fontSize: 14,
+                    fontStyle: FontStyle.italic,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 36),
 
                 TextFormField(
                   controller: _usernameController,
@@ -95,24 +111,33 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                   validator: (value) => value!.length < 6 ? 'Too short' : null,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                FilledButton(
-                  onPressed: isLoading ? null : _submitSignup,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(32),
                   ),
-                  child: isLoading 
-                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                    : const Text('Sign Up'),
+                  child: FilledButton(
+                    onPressed: isLoading ? null : _submitSignup,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 52),
+                    ),
+                    child: isLoading 
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
+                      : Text('Sign Up', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
                 ),
                 
                 const SizedBox(height: 16),
                 TextButton(
                   onPressed: isLoading ? null : () => context.pop(),
-                  child: const Text("Already have an account? Login"),
+                  child: Text(
+                    "Already have an account? Login",
+                    style: GoogleFonts.inter(color: AppTheme.primary),
+                  ),
                 ),
               ],
             ),

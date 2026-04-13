@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/gamification/presentation/gamification_providers.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
-
 import '../features/books/presentation/books_for_you_section.dart';
 import '../features/social/presentation/social_feed_section.dart';
-
+import '../theme/app_theme.dart';
 import '../utils/app_logger.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -17,51 +17,72 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('BooklyBear 🐻'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            onPressed: () => context.push('/profile'),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-          ),
-        ],
-      ),
       body: RefreshIndicator(
         onRefresh: () async {
           ref.invalidate(gamificationStatusProvider);
           ref.invalidate(libraryProvider);
         },
-        child: ListView(
-          padding: const EdgeInsets.all(16.0),
-          children: [
-            // ── Gamification Hero ─────────────────────────────────────────
-            _buildGamificationHero(context, ref),
-            const SizedBox(height: 24),
+        child: CustomScrollView(
+          slivers: [
+            // ── Editorial Top Bar ─────────────────────────────────────────
+            SliverAppBar(
+              floating: true,
+              snap: true,
+              backgroundColor: AppTheme.surface,
+              surfaceTintColor: Colors.transparent,
+              title: Text(
+                'BooklyBear',
+                style: GoogleFonts.notoSerif(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.primary,
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.person_outline, size: 22),
+                  onPressed: () => context.push('/profile'),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.logout, size: 20),
+                  onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+                ),
+              ],
+            ),
 
-            // ── Daily Challenge ───────────────────────────────────────────
-            _buildDailyChallenge(context, ref),
-            const SizedBox(height: 48),
+            // ── Content ──────────────────────────────────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  // Gamification Hero
+                  _buildGamificationHero(context, ref),
+                  const SizedBox(height: 32),
 
-            // ── AI Recommendations ────────────────────────────────────────
-            const BooksForYouSection(),
-            const SizedBox(height: 48),
+                  // Daily Challenge
+                  _buildDailyChallenge(context, ref),
+                  const SizedBox(height: 48),
 
-            // ── Currently Reading ─────────────────────────────────────────
-            const _CurrentlyReadingSection(),
-            const SizedBox(height: 48),
+                  // Continue Reading
+                  const _CurrentlyReadingSection(),
+                  const SizedBox(height: 48),
 
-            // ── Feed (Social + Discovery) ─────────────────────────────────
-            const SocialFeedSection(),
+                  // Curated For You (AI Recommendations)
+                  const BooksForYouSection(),
+                  const SizedBox(height: 48),
+
+                  // Reflections (Social Feed)
+                  const SocialFeedSection(),
+                ]),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
+  // ── Gamification Hero — Editorial Style ──────────────────────────────────
   Widget _buildGamificationHero(BuildContext context, WidgetRef ref) {
     final gamificationState = ref.watch(gamificationStatusProvider);
 
@@ -75,89 +96,119 @@ class HomeScreen extends ConsumerWidget {
             : 0.0;
 
         return Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(8),
+            color: AppTheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Greeting
+              Text(
+                'Welcome back, Archivist.',
+                style: GoogleFonts.notoSerif(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '${status.nextLevelXp - status.xpProgress} XP until your next chapter.',
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppTheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Level & Streak Row
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Level Badge
+                  // Level Badge — pill
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.onPrimary.withAlpha(25),
-                      borderRadius: BorderRadius.circular(4),
+                      color: AppTheme.primary,
+                      borderRadius: BorderRadius.circular(100),
                     ),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, color: Theme.of(context).colorScheme.onPrimary, size: 20),
+                        const Icon(Icons.star_rounded, color: AppTheme.onPrimary, size: 16),
                         const SizedBox(width: 6),
                         Text(
                           'Level ${status.level}',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                          style: GoogleFonts.inter(
+                            color: AppTheme.onPrimary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 12),
                   // Streak
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.local_fire_department,
-                        color: Theme.of(context).colorScheme.onPrimary,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${status.streak} Days',
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryFixed,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.local_fire_department, color: AppTheme.onPrimaryFixed, size: 16),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${status.streak} Days',
+                          style: GoogleFonts.inter(
+                            color: AppTheme.onPrimaryFixed,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
+
+              // XP Progress
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'XP Progress',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.w600,
+                    style: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12,
                     ),
                   ),
                   Text(
-                    '${status.xpProgress} / ${status.nextLevelXp} XP',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.onPrimary,
+                    '${status.xpProgress} / ${status.nextLevelXp}',
+                    style: GoogleFonts.inter(
+                      color: AppTheme.primary,
                       fontWeight: FontWeight.w600,
+                      fontSize: 12,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              LinearProgressIndicator(
-                value: progressPercent,
-                backgroundColor: Theme.of(context).colorScheme.onPrimary.withAlpha(50),
-                valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
-                minHeight: 2,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(100),
+                child: LinearProgressIndicator(
+                  value: progressPercent,
+                  minHeight: 4,
+                  backgroundColor: AppTheme.surfaceContainerHighest,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                ),
               ),
             ],
           ),
@@ -165,82 +216,138 @@ class HomeScreen extends ConsumerWidget {
       },
       loading: () {
         AppLogger.info('[HomeScreen] Gamification loading...');
-        return const Center(child: CircularProgressIndicator());
+        return Container(
+          height: 160,
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Center(child: CircularProgressIndicator()),
+        );
       },
       error: (err, _) {
         AppLogger.error('[HomeScreen] Gamification error: $err');
-        return Card(
-          color: Colors.red.shade100,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text('Failed to load stats: $err'),
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppTheme.errorContainer,
+            borderRadius: BorderRadius.circular(16),
           ),
+          child: Text('Failed to load stats: $err',
+              style: TextStyle(color: AppTheme.onErrorContainer)),
         );
       },
     );
   }
 
+  // ── Daily Challenge ─────────────────────────────────────────────────────
   Widget _buildDailyChallenge(BuildContext context, WidgetRef ref) {
     final challengeAsync = ref.watch(todaysChallengeProvider);
 
     return challengeAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const SizedBox.shrink(),
       error: (err, _) => const SizedBox.shrink(),
       data: (challenge) {
         if (challenge.isCompleted && !challenge.newlyCompleted) {
-          // If completely done before today, we could just show a checkmark or ignore it.
+          // Already done
         }
 
-        final double progress = (challenge.pagesReadToday / challenge.goalPages).clamp(0.0, 1.0);
+        final double progress =
+            (challenge.pagesReadToday / challenge.goalPages).clamp(0.0, 1.0);
 
-        return Card(
-          color: challenge.isCompleted 
-              ? Theme.of(context).colorScheme.primaryContainer 
-              : Theme.of(context).colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: challenge.isCompleted 
-                  ? Theme.of(context).colorScheme.primary 
-                  : Theme.of(context).colorScheme.outlineVariant,
-            ),
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: challenge.isCompleted
+                ? AppTheme.primaryFixed.withAlpha(60)
+                : AppTheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: AppTheme.ambientShadow,
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      challenge.isCompleted ? Icons.check_circle : Icons.star_border,
-                      color: challenge.isCompleted ? Colors.green : Colors.orange,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    challenge.isCompleted
+                        ? Icons.check_circle_rounded
+                        : Icons.auto_stories_outlined,
+                    color: challenge.isCompleted
+                        ? AppTheme.primary
+                        : AppTheme.onSurfaceVariant,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Daily Challenge',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: AppTheme.onSurface,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Daily Challenge',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryFixed,
+                      borderRadius: BorderRadius.circular(100),
                     ),
-                    const Spacer(),
-                    Text('+${challenge.xpReward} XP', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(challenge.description),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('${challenge.pagesReadToday} / ${challenge.goalPages} pages'),
-                    if (challenge.isCompleted) const Text('Completed!', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                if (!challenge.isCompleted) ...[
-                  const SizedBox(height: 8),
-                  LinearProgressIndicator(value: progress),
+                    child: Text(
+                      '+${challenge.xpReward} XP',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                        color: AppTheme.onPrimaryFixed,
+                      ),
+                    ),
+                  ),
                 ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                challenge.description,
+                style: GoogleFonts.notoSerif(
+                  fontSize: 14,
+                  fontStyle: FontStyle.italic,
+                  color: AppTheme.onSurfaceVariant,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${challenge.pagesReadToday} / ${challenge.goalPages} pages',
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (challenge.isCompleted)
+                    Text(
+                      'Completed ✓',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.primary,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
+              ),
+              if (!challenge.isCompleted) ...[
+                const SizedBox(height: 10),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 4,
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
         );
       },
@@ -285,7 +392,7 @@ class _CurrentlyReadingSection extends ConsumerWidget {
               'Continue Reading',
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 20),
             ...reading.map(
               (userBook) => _CurrentlyReadingCard(userBook: userBook),
             ),
@@ -307,108 +414,113 @@ class _CurrentlyReadingCard extends StatelessWidget {
     final theme = Theme.of(context);
     final percent = (userBook.progressPercent * 100).toStringAsFixed(0);
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.cardDecoration,
       child: InkWell(
         onTap: () => context.push('/book/${book.isbn}'),
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Cover
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  book.coverImageUrl,
-                  width: 60,
-                  height: 88,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 60,
-                    height: 88,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.book, size: 30),
+        child: Row(
+          children: [
+            // Cover — let it feel like a prized possession
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                book.coverImageUrl,
+                width: 64,
+                height: 96,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  width: 64,
+                  height: 96,
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceContainerHigh,
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: const Icon(Icons.book, size: 28, color: AppTheme.onSurfaceVariant),
                 ),
               ),
-              const SizedBox(width: 14),
+            ),
+            const SizedBox(width: 16),
 
-              // Info + Progress
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      book.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
+            // Info + Progress
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.notoSerif(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: AppTheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    book.author,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Page ${userBook.currentPage} of ${book.pageCount}',
+                        style: theme.textTheme.labelSmall,
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      book.author,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                      Text(
+                        '$percent%',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          color: AppTheme.primary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Page ${userBook.currentPage} of ${book.pageCount}',
-                          style: theme.textTheme.labelSmall,
-                        ),
-                        Text(
-                          '$percent%',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.primary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(100),
+                    child: LinearProgressIndicator(
                       value: userBook.progressPercent,
-                      minHeight: 2,
-                      backgroundColor: theme.colorScheme.outlineVariant.withAlpha(50),
-                      color: theme.colorScheme.primary,
+                      minHeight: 4,
                     ),
-                    const SizedBox(height: 16),
+                  ),
+                  const SizedBox(height: 14),
 
-                    // ── Focus Timer Button ──────────────────────────────────
-                    SizedBox(
-                      width: double.infinity,
+                  // Focus Timer Button — editorial gradient
+                  SizedBox(
+                    width: double.infinity,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.primaryGradient,
+                        borderRadius: BorderRadius.circular(32),
+                      ),
                       child: FilledButton.icon(
                         onPressed: () => context.push(
                           '/timer/${userBook.id}?title=${Uri.encodeComponent(book.title)}',
                         ),
                         icon: const Icon(Icons.timer_outlined, size: 16),
-                        label: const Text('Start Focus Timer'),
+                        label: const Text('Focus Timer'),
                         style: FilledButton.styleFrom(
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          foregroundColor: theme.colorScheme.onPrimary,
-                          minimumSize: const Size(0, 36),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          textStyle: const TextStyle(fontSize: 13),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          backgroundColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

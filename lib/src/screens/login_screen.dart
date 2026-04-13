@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:booklybear/src/features/auth/presentation/auth_controller.dart';
+import '../theme/app_theme.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -41,7 +43,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error.toString()),
-            backgroundColor: Colors.red,
+            backgroundColor: AppTheme.error,
           ),
         );
       }
@@ -50,21 +52,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(32.0),
           child: Form(
             key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Icon(Icons.menu_book_rounded, size: 80, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 24),
+                // Editorial branding
                 Text(
-                  'Welcome Back!',
+                  '📚',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: const TextStyle(fontSize: 56),
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 16),
+                Text(
+                  'BooklyBear',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.notoSerif(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Welcome back, reader.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.notoSerif(
+                    fontSize: 16,
+                    fontStyle: FontStyle.italic,
+                    color: AppTheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 48),
                 
                 TextFormField(
                   controller: _emailController,
@@ -92,24 +113,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                FilledButton(
-                  onPressed: isLoading ? null : _submitLogin,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.primaryGradient,
+                    borderRadius: BorderRadius.circular(32),
                   ),
-                  child: isLoading 
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Login'),
+                  child: FilledButton(
+                    onPressed: isLoading ? null : _submitLogin,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      minimumSize: const Size(double.infinity, 52),
+                    ),
+                    child: isLoading 
+                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
+                        : Text('Login', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
                 TextButton(
                   onPressed: isLoading ? null : () => context.push('/signup'),
-                  child: const Text("Don't have an account? Sign Up"),
+                  child: Text(
+                    "Don't have an account? Sign Up",
+                    style: GoogleFonts.inter(color: AppTheme.primary),
+                  ),
                 ),
               ],
             ),

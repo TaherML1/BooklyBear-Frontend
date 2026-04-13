@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../features/auth/presentation/auth_controller.dart';
 import '../features/user/data/profile_repository.dart';
 import '../features/user/data/stats_repository.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
 import '../features/gamification/presentation/gamification_providers.dart';
+import '../theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -65,13 +67,13 @@ class ProfileScreen extends ConsumerWidget {
             },
             child: CustomScrollView(
               slivers: [
-                // ── Hero App Bar ────────────────────────────────────────────
+                // ── Hero App Bar — editorial tonal ──────────────────────────
                 SliverAppBar(
                   expandedHeight: 200,
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerLow,
+                      color: AppTheme.surfaceContainerLow,
                       child: SafeArea(
                         child: Padding(
                           padding: const EdgeInsets.all(20),
@@ -80,9 +82,7 @@ class ProfileScreen extends ConsumerWidget {
                             children: [
                               CircleAvatar(
                                 radius: 44,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).colorScheme.primaryContainer,
+                                backgroundColor: AppTheme.primaryFixed,
                                 backgroundImage: user.avatarUrl != null
                                     ? CachedNetworkImageProvider(
                                         user.avatarUrl!,
@@ -93,12 +93,10 @@ class ProfileScreen extends ConsumerWidget {
                                         user.displayName.isNotEmpty
                                             ? user.displayName[0].toUpperCase()
                                             : '?',
-                                        style: TextStyle(
+                                        style: GoogleFonts.notoSerif(
                                           fontSize: 36,
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.onPrimary,
+                                          color: AppTheme.onPrimaryFixed,
                                         ),
                                       )
                                     : null,
@@ -111,20 +109,14 @@ class ProfileScreen extends ConsumerWidget {
                                   children: [
                                     Text(
                                       user.displayName,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.headlineLarge,
+                                      style: Theme.of(context).textTheme.headlineLarge,
                                     ),
                                     Text(
                                       '@${user.username}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            color: Theme.of(
-                                              context,
-                                            ).colorScheme.onSurfaceVariant,
-                                          ),
+                                      style: GoogleFonts.inter(
+                                        color: AppTheme.onSurfaceVariant,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                     if (user.bio != null &&
                                         user.bio!.isNotEmpty) ...[
@@ -133,10 +125,11 @@ class ProfileScreen extends ConsumerWidget {
                                         user.bio!,
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .bodySmall
-                                            ?.copyWith(height: 1.4),
+                                        style: GoogleFonts.inter(
+                                          color: AppTheme.onSurfaceVariant,
+                                          fontSize: 13,
+                                          height: 1.4,
+                                        ),
                                       ),
                                     ],
                                   ],
@@ -150,10 +143,9 @@ class ProfileScreen extends ConsumerWidget {
                   ),
                   actions: [
                     IconButton(
-                      // Removed "const" from here!
-                      icon: Icon(
-                        Icons.edit_outlined, // Added the comma here!
-                        color: Theme.of(context).colorScheme.primary,
+                      icon: const Icon(
+                        Icons.edit_outlined,
+                        color: AppTheme.primary,
                       ),
                       onPressed: () {
                         context.go(
@@ -170,7 +162,7 @@ class ProfileScreen extends ConsumerWidget {
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -185,119 +177,121 @@ class ProfileScreen extends ConsumerWidget {
                                 children: [
                                   Row(
                                     children: [
+                                      // Level pill badge
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 6,
+                                          horizontal: 14,
+                                          vertical: 7,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Theme.of(
-                                            context,
-                                          ).colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          color: AppTheme.primary,
+                                          borderRadius: BorderRadius.circular(100),
                                         ),
                                         child: Row(
                                           children: [
                                             const Icon(
-                                              Icons.star,
+                                              Icons.star_rounded,
                                               size: 16,
-                                              color: Colors.white,
+                                              color: AppTheme.onPrimary,
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
                                               'Level $currentLevel',
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
+                                              style: GoogleFonts.inter(
+                                                color: AppTheme.onPrimary,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 13,
                                               ),
                                             ),
                                           ],
                                         ),
                                       ),
                                       const SizedBox(width: 12),
-                                      Row(
-                                        children: [
-                                          const Icon(
-                                            Icons.local_fire_department,
-                                            color: Colors.orange,
-                                            size: 22,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            '${user.currentStreak} day streak',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelLarge
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                          ),
-                                        ],
+                                      // Streak pill
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 7,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.primaryFixed,
+                                          borderRadius: BorderRadius.circular(100),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.local_fire_department,
+                                              color: AppTheme.onPrimaryFixed,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '${user.currentStreak} days',
+                                              style: GoogleFonts.inter(
+                                                color: AppTheme.onPrimaryFixed,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 13,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
                                   Text(
-                                    '${user.points} XP total',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 13,
+                                    '${user.points} XP',
+                                    style: GoogleFonts.inter(
+                                      color: AppTheme.onSurfaceVariant,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 16),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Level $currentLevel → ${currentLevel + 1}',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
+                                    style: GoogleFonts.inter(
+                                      color: AppTheme.onSurfaceVariant,
                                       fontSize: 12,
                                     ),
                                   ),
                                   Text(
                                     '$xpProgress / $xpNeeded XP',
-                                    style: TextStyle(
-                                      color: Colors.orange.shade600,
+                                    style: GoogleFonts.inter(
+                                      color: AppTheme.primary,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(100),
                                 child: LinearProgressIndicator(
                                   value: xpPercent,
-                                  minHeight: 10,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Theme.of(context).colorScheme.primary,
-                                  ),
+                                  minHeight: 4,
                                 ),
                               ),
                             ],
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
-                        // ── Library Stats ───────────────────────────────────
+                        // ── Library Stats — tonal cards ─────────────────────
                         Row(
                           children: [
                             Expanded(
                               child: _LibraryStatCard(
                                 value: readingCount,
                                 label: 'Reading',
-                                icon: Icons.book,
-                                color: Colors.blue,
+                                icon: Icons.book_outlined,
+                                color: AppTheme.primary,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -305,8 +299,8 @@ class ProfileScreen extends ConsumerWidget {
                               child: _LibraryStatCard(
                                 value: finishedCount,
                                 label: 'Finished',
-                                icon: Icons.check_circle,
-                                color: Colors.green,
+                                icon: Icons.check_circle_outline,
+                                color: AppTheme.primary,
                               ),
                             ),
                             const SizedBox(width: 10),
@@ -314,14 +308,14 @@ class ProfileScreen extends ConsumerWidget {
                               child: _LibraryStatCard(
                                 value: toReadCount,
                                 label: 'To Read',
-                                icon: Icons.bookmarks,
-                                color: Colors.orange,
+                                icon: Icons.bookmarks_outlined,
+                                color: AppTheme.secondary,
                               ),
                             ),
                           ],
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
                         // ── Reading Stats ───────────────────────────────────
                         statsAsync.when(
@@ -336,16 +330,19 @@ class ProfileScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   'Reading Stats',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                  style: GoogleFonts.notoSerif(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: AppTheme.onSurface,
+                                  ),
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 20),
                                 Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceAround,
                                   children: [
                                     _StatItem(
-                                      icon: Icons.pages,
+                                      icon: Icons.pages_outlined,
                                       value: '${stats.totalPages}',
                                       label: 'Pages',
                                     ),
@@ -366,7 +363,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
                         // ── Account Info ────────────────────────────────────
                         _SectionCard(
@@ -375,19 +372,22 @@ class ProfileScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 'Account',
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                                style: GoogleFonts.notoSerif(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  color: AppTheme.onSurface,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.email_outlined),
+                                leading: const Icon(Icons.email_outlined, color: AppTheme.onSurfaceVariant),
                                 title: const Text('Email'),
                                 subtitle: Text(user.email),
                               ),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.alternate_email),
+                                leading: const Icon(Icons.alternate_email, color: AppTheme.onSurfaceVariant),
                                 title: const Text('Username'),
                                 subtitle: Text('@${user.username}'),
                               ),
@@ -395,7 +395,7 @@ class ProfileScreen extends ConsumerWidget {
                           ),
                         ),
 
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
                         // ── Achievements ────────────────────────────────────
                         Consumer(
@@ -410,8 +410,10 @@ class ProfileScreen extends ConsumerWidget {
                                    child: Column(
                                      crossAxisAlignment: CrossAxisAlignment.start,
                                      children: [
-                                       Text('Achievements', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                                       const SizedBox(height: 8),
+                                       Text('Achievements', style: GoogleFonts.notoSerif(
+                                         fontWeight: FontWeight.w600, fontSize: 16, color: AppTheme.onSurface,
+                                       )),
+                                       const SizedBox(height: 12),
                                        SizedBox(
                                          height: 100,
                                          child: ListView.builder(
@@ -428,7 +430,7 @@ class ProfileScreen extends ConsumerWidget {
                                                    children: [
                                                      Text(ach.icon, style: const TextStyle(fontSize: 32)),
                                                      const SizedBox(height: 4),
-                                                     Text(ach.name, style: const TextStyle(fontSize: 10), textAlign: TextAlign.center),
+                                                     Text(ach.name, style: GoogleFonts.inter(fontSize: 10, color: AppTheme.onSurfaceVariant), textAlign: TextAlign.center),
                                                    ],
                                                  ),
                                                ),
@@ -444,10 +446,56 @@ class ProfileScreen extends ConsumerWidget {
                            },
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 16),
 
+                        // ── Dynamic Badges ──────────────────────────────────
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final badgesAsync = ref.watch(userBadgesProvider);
+                            return badgesAsync.when(
+                              loading: () => const Center(child: CircularProgressIndicator()),
+                              error: (err, _) => const SizedBox.shrink(),
+                              data: (badges) {
+                                if (badges.isEmpty) return const SizedBox.shrink();
+                                return _SectionCard(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Earned Badges', style: GoogleFonts.notoSerif(
+                                        fontWeight: FontWeight.w600, fontSize: 16, color: AppTheme.onSurface,
+                                      )),
+                                      const SizedBox(height: 12),
+                                      SizedBox(
+                                        height: 100,
+                                        child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: badges.length,
+                                          itemBuilder: (context, index) {
+                                            final badge = badges[index];
+                                            return Container(
+                                              width: 80,
+                                              margin: const EdgeInsets.only(right: 12),
+                                              child: Column(
+                                                children: [
+                                                  Text(badge.icon, style: const TextStyle(fontSize: 32)),
+                                                  const SizedBox(height: 4),
+                                                  Text(badge.name, style: GoogleFonts.inter(fontSize: 10, color: AppTheme.onSurfaceVariant), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 24),
                         // ── Logout ──────────────────────────────────────────
-                        const SizedBox(height: 12),
                         FilledButton.icon(
                           onPressed: () => ref
                               .read(authControllerProvider.notifier)
@@ -456,15 +504,12 @@ class ProfileScreen extends ConsumerWidget {
                           label: const Text('Log Out'),
                           style: FilledButton.styleFrom(
                             minimumSize: const Size(double.infinity, 52),
-                            backgroundColor: Theme.of(
-                              context,
-                            ).colorScheme.errorContainer,
-                            foregroundColor: Theme.of(
-                              context,
-                            ).colorScheme.onErrorContainer,
+                            backgroundColor: AppTheme.errorContainer,
+                            foregroundColor: AppTheme.onErrorContainer,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 100), // nav bar clearance
                       ],
                     ),
                   ),
@@ -486,10 +531,11 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      child: Padding(padding: const EdgeInsets.all(20), child: child),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: AppTheme.cardDecoration,
+      child: child,
     );
   }
 }
@@ -509,29 +555,30 @@ class _LibraryStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 0,
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 28),
-            const SizedBox(height: 8),
-            Text(
-              '$value',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineMedium?.copyWith(color: color),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      decoration: AppTheme.cardDecoration,
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            '$value',
+            style: GoogleFonts.notoSerif(
+              fontSize: 24,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
-            Text(
-              label,
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: AppTheme.onSurfaceVariant,
+              fontSize: 11,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -552,12 +599,22 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, size: 28, color: Theme.of(context).colorScheme.primary),
+        Icon(icon, size: 24, color: AppTheme.primary),
         const SizedBox(height: 8),
-        Text(value, style: Theme.of(context).textTheme.headlineSmall),
+        Text(
+          value,
+          style: GoogleFonts.notoSerif(
+            fontSize: 22,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.onSurface,
+          ),
+        ),
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            color: AppTheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
