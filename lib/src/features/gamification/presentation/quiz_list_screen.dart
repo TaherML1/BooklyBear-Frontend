@@ -2,19 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'gamification_providers.dart';
 import 'quiz_taking_screen.dart';
-import '../domain/quiz_models.dart';
 
 class QuizListScreen extends ConsumerWidget {
-  const QuizListScreen({Key? key}) : super(key: key);
+  const QuizListScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final quizzesAsync = ref.watch(generalQuizzesProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Brain Teasers & Quizzes'),
-      ),
+      appBar: AppBar(title: const Text('Brain Teasers & Quizzes')),
       body: quizzesAsync.when(
         data: (quizzes) {
           if (quizzes.isEmpty) {
@@ -36,10 +33,18 @@ class QuizListScreen extends ConsumerWidget {
                 child: ListTile(
                   contentPadding: const EdgeInsets.all(16),
                   leading: CircleAvatar(
-                    backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                    child: Text(quiz.badgeIcon ?? '❓', style: const TextStyle(fontSize: 24)),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primaryContainer,
+                    child: Text(
+                      quiz.badgeIcon ?? '❓',
+                      style: const TextStyle(fontSize: 24),
+                    ),
                   ),
-                  title: Text(quiz.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    quiz.title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Column(
@@ -49,11 +54,15 @@ class QuizListScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.star, size: 16, color: Colors.amber),
+                            const Icon(
+                              Icons.star,
+                              size: 16,
+                              color: Colors.amber,
+                            ),
                             const SizedBox(width: 4),
                             Text('${quiz.xpReward} XP for passing'),
                           ],
-                        )
+                        ),
                       ],
                     ),
                   ),

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -11,27 +13,36 @@ class PublicProfileScreen extends ConsumerStatefulWidget {
   const PublicProfileScreen({super.key, required this.username});
 
   @override
-  ConsumerState<PublicProfileScreen> createState() => _PublicProfileScreenState();
+  ConsumerState<PublicProfileScreen> createState() =>
+      _PublicProfileScreenState();
 }
 
 class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
   void _sendRequest(String username) async {
     try {
       await ref.read(friendsRepositoryProvider).sendFriendRequest(username);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Friend request sent!')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Friend request sent!')));
       ref.invalidate(publicProfileProvider(username));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
   void _blockUser(String userId) async {
     try {
       await ref.read(friendsRepositoryProvider).blockUser(userId);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User blocked.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('User blocked.')));
       ref.invalidate(publicProfileProvider(widget.username));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -46,11 +57,17 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
         error: (err, _) => Center(child: Text('Error loading profile: $err')),
         data: (user) {
           final int currentLevel = user.level;
-          final int nextLevelXp = ((currentLevel + 1) * (currentLevel + 1) * 50);
+          final int nextLevelXp =
+              ((currentLevel + 1) * (currentLevel + 1) * 50);
           final int currentLevelXp = (currentLevel * currentLevel * 50);
-          final int xpProgress = (user.points - currentLevelXp).clamp(0, nextLevelXp - currentLevelXp);
+          final int xpProgress = (user.points - currentLevelXp).clamp(
+            0,
+            nextLevelXp - currentLevelXp,
+          );
           final int xpNeeded = nextLevelXp - currentLevelXp;
-          final double xpPercent = xpNeeded > 0 ? (xpProgress / xpNeeded).clamp(0.0, 1.0) : 0.0;
+          final double xpPercent = xpNeeded > 0
+              ? (xpProgress / xpNeeded).clamp(0.0, 1.0)
+              : 0.0;
 
           final friendshipAsync = ref.watch(friendshipStatusProvider(user.id));
 
@@ -61,27 +78,62 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                 child: CircleAvatar(
                   radius: 44,
                   backgroundColor: AppTheme.primaryFixed,
-                  backgroundImage: user.avatarUrl != null ? CachedNetworkImageProvider(user.avatarUrl!) : null,
+                  backgroundImage: user.avatarUrl != null
+                      ? CachedNetworkImageProvider(user.avatarUrl!)
+                      : null,
                   child: user.avatarUrl == null
                       ? Text(
-                          user.displayName.isNotEmpty ? user.displayName[0].toUpperCase() : '?',
-                          style: GoogleFonts.notoSerif(fontSize: 36, fontWeight: FontWeight.bold, color: AppTheme.onPrimaryFixed),
+                          user.displayName.isNotEmpty
+                              ? user.displayName[0].toUpperCase()
+                              : '?',
+                          style: GoogleFonts.notoSerif(
+                            fontSize: 36,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.onPrimaryFixed,
+                          ),
                         )
                       : null,
                 ),
               ),
               const SizedBox(height: 16),
-              Center(child: Text(user.displayName, style: Theme.of(context).textTheme.headlineLarge)),
-              Center(child: Text('@${user.username}', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 14))),
+              Center(
+                child: Text(
+                  user.displayName,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+              ),
+              Center(
+                child: Text(
+                  '@${user.username}',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.onSurfaceVariant,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
               if (user.bio != null && user.bio!.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Center(child: Text(user.bio!, style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 13), textAlign: TextAlign.center)),
+                Center(
+                  child: Text(
+                    user.bio!,
+                    style: GoogleFonts.inter(
+                      color: AppTheme.onSurfaceVariant,
+                      fontSize: 13,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               ],
               const SizedBox(height: 28),
-              
+
               friendshipAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (err, _) => Center(child: Text('Error loading friendship status', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant))),
+                error: (err, _) => Center(
+                  child: Text(
+                    'Error loading friendship status',
+                    style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+                  ),
+                ),
                 data: (friendship) {
                   if (friendship.status == 'none') {
                     return Container(
@@ -100,14 +152,23 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                       ),
                     );
                   } else if (friendship.status == 'PENDING') {
-                    return const OutlinedButton(onPressed: null, child: Text('Request Sent'));
+                    return const OutlinedButton(
+                      onPressed: null,
+                      child: Text('Request Sent'),
+                    );
                   } else if (friendship.status == 'ACCEPTED') {
                     return OutlinedButton(
                       onPressed: null,
-                      child: Text('Friends ✓', style: GoogleFonts.inter(color: AppTheme.primary)),
+                      child: Text(
+                        'Friends ✓',
+                        style: GoogleFonts.inter(color: AppTheme.primary),
+                      ),
                     );
                   } else if (friendship.status == 'BLOCKED') {
-                    return const OutlinedButton(onPressed: null, child: Text('Blocked'));
+                    return const OutlinedButton(
+                      onPressed: null,
+                      child: Text('Blocked'),
+                    );
                   }
                   return const SizedBox.shrink();
                 },
@@ -116,7 +177,10 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
               OutlinedButton.icon(
                 onPressed: () => _blockUser(user.id),
                 icon: const Icon(Icons.block, color: AppTheme.error),
-                label: Text('Block User', style: GoogleFonts.inter(color: AppTheme.error)),
+                label: Text(
+                  'Block User',
+                  style: GoogleFonts.inter(color: AppTheme.error),
+                ),
               ),
               const SizedBox(height: 28),
               Container(
@@ -125,23 +189,39 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                 child: Column(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.primary,
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Text(
                         'Level $currentLevel',
-                        style: GoogleFonts.inter(color: AppTheme.onPrimary, fontWeight: FontWeight.w700, fontSize: 13),
+                        style: GoogleFonts.inter(
+                          color: AppTheme.onPrimary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(100),
-                      child: LinearProgressIndicator(value: xpPercent, minHeight: 4),
+                      child: LinearProgressIndicator(
+                        value: xpPercent,
+                        minHeight: 4,
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    Text('$xpProgress / $xpNeeded XP', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 12)),
+                    Text(
+                      '$xpProgress / $xpNeeded XP',
+                      style: GoogleFonts.inter(
+                        color: AppTheme.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                 ),
               ),
