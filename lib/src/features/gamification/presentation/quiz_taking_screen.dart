@@ -9,7 +9,7 @@ import '../../../theme/app_theme.dart';
 class QuizTakingScreen extends ConsumerStatefulWidget {
   final Quiz quiz;
 
-  const QuizTakingScreen({Key? key, required this.quiz}) : super(key: key);
+  const QuizTakingScreen({super.key, required this.quiz});
 
   @override
   ConsumerState<QuizTakingScreen> createState() => _QuizTakingScreenState();
@@ -31,9 +31,11 @@ class _QuizTakingScreenState extends ConsumerState<QuizTakingScreen> {
 
   void _submitQuiz() async {
     if (_selectedAnswers.length < _selectedQuestions.length) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please answer all questions before submitting.')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please answer all questions before submitting.')),
+        );
+      }
       return;
     }
 
@@ -58,11 +60,15 @@ class _QuizTakingScreenState extends ConsumerState<QuizTakingScreen> {
       ref.invalidate(userBadgesProvider);
       ref.invalidate(gamificationStatusProvider);
       
-      _showResultDialog(result);
+      if (mounted) {
+        _showResultDialog(result);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -198,38 +204,44 @@ class _QuizTakingScreenState extends ConsumerState<QuizTakingScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                ...List.generate(question.options.length, (index) {
-                  final isSelected = _selectedAnswers[_currentIndex] == index;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12.0),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: isSelected 
-                            ? AppTheme.primary
-                            : AppTheme.outlineVariant.withAlpha(60),
-                          width: isSelected ? 2 : 1,
+                RadioGroup<int>(
+                  groupValue: _selectedAnswers[_currentIndex],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedAnswers[_currentIndex] = value;
+                      });
+                    }
+                  },
+                  child: Column(
+                    children: List.generate(question.options.length, (index) {
+                      final isSelected = _selectedAnswers[_currentIndex] == index;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected 
+                                ? AppTheme.primary
+                                : AppTheme.outlineVariant.withAlpha(60),
+                              width: isSelected ? 2 : 1,
+                            ),
+                            color: isSelected 
+                              ? AppTheme.primaryFixed.withAlpha(100)
+                              : Colors.transparent,
+                          ),
+                          child: RadioListTile<int>(
+                            title: Text(question.options[index], style: GoogleFonts.inter()),
+                            value: index,
+                            activeColor: AppTheme.primary,
+                          ),
                         ),
-                        color: isSelected 
-                          ? AppTheme.primaryFixed.withAlpha(100)
-                          : Colors.transparent,
-                      ),
-                      child: RadioListTile<int>(
-                        title: Text(question.options[index], style: GoogleFonts.inter()),
-                        value: index,
-                        groupValue: _selectedAnswers[_currentIndex],
-                        activeColor: AppTheme.primary,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedAnswers[_currentIndex] = value!;
-                          });
-                        },
-                      ),
-                    ),
-                  );
-                }),
+                      );
+                    }),
+                  ),
+                ),
                 const Spacer(),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

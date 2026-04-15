@@ -79,14 +79,14 @@ class ActivityItem extends StatelessWidget {
 
   IconData _getIcon() {
     switch (activity.type) {
-      case ActivityType.pages_read: return Icons.menu_book_rounded;
-      case ActivityType.book_finished: return Icons.workspace_premium_rounded;
-      case ActivityType.member_joined: return Icons.person_add_rounded;
-      case ActivityType.member_left: return Icons.person_remove_rounded;
-      case ActivityType.book_selected: return Icons.auto_stories_rounded;
-      case ActivityType.milestone_created: return Icons.flag_rounded;
-      case ActivityType.vote_cast: return Icons.how_to_vote_rounded;
-      case ActivityType.book_proposed: return Icons.lightbulb_outline_rounded;
+      case ActivityType.pagesRead: return Icons.menu_book_rounded;
+      case ActivityType.bookFinished: return Icons.workspace_premium_rounded;
+      case ActivityType.memberJoined: return Icons.person_add_rounded;
+      case ActivityType.memberLeft: return Icons.person_remove_rounded;
+      case ActivityType.bookSelected: return Icons.auto_stories_rounded;
+      case ActivityType.milestoneCreated: return Icons.flag_rounded;
+      case ActivityType.voteCast: return Icons.how_to_vote_rounded;
+      case ActivityType.bookProposed: return Icons.lightbulb_outline_rounded;
     }
   }
 
@@ -94,21 +94,21 @@ class ActivityItem extends StatelessWidget {
     final user = activity.user.displayName;
     final meta = activity.metadata;
     switch (activity.type) {
-      case ActivityType.pages_read:
+      case ActivityType.pagesRead:
         return '$user read ${meta['pagesRead']} pages of "${meta['bookTitle']}"';
-      case ActivityType.book_finished:
+      case ActivityType.bookFinished:
         return '🎉 $user finished "${meta['bookTitle']}"!';
-      case ActivityType.member_joined:
+      case ActivityType.memberJoined:
         return '$user joined the club';
-      case ActivityType.member_left:
+      case ActivityType.memberLeft:
         return '$user left the club';
-      case ActivityType.book_selected:
+      case ActivityType.bookSelected:
         return '📖 Group selected "${meta['bookTitle']}" to read next!';
-      case ActivityType.milestone_created:
+      case ActivityType.milestoneCreated:
         return '📅 New milestone: "${meta['title']}" by ${meta['targetPage']} pages';
-      case ActivityType.vote_cast:
+      case ActivityType.voteCast:
         return '$user voted for a book';
-      case ActivityType.book_proposed:
+      case ActivityType.bookProposed:
         return '💡 $user proposed "${meta['bookTitle']}"';
     }
   }

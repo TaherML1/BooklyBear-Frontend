@@ -10,6 +10,7 @@ import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
 import '../features/gamification/presentation/gamification_providers.dart';
 import '../theme/app_theme.dart';
+import '../routing/app_router.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -397,6 +398,152 @@ class ProfileScreen extends ConsumerWidget {
 
                         const SizedBox(height: 16),
 
+                        // ── Recommendation Settings ──────────────────────────
+                        _SectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Recommendation Settings',
+                                    style: GoogleFonts.notoSerif(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                      color: AppTheme.onSurface,
+                                    ),
+                                  ),
+                                  if (user.onboardingCompleted)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryFixed,
+                                        borderRadius: BorderRadius.circular(100),
+                                      ),
+                                      child: Text(
+                                        'Active',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.onPrimaryFixed,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              if (user.readerArchetype != null) ...[
+                                // Archetype display
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.surfaceContainerLow,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        _archetypeEmoji(user.readerArchetype!),
+                                        style: const TextStyle(fontSize: 32),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              _archetypeDisplayName(user.readerArchetype!),
+                                              style: GoogleFonts.notoSerif(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppTheme.primary,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Your reader personality',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 12,
+                                                color: AppTheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              // Preferred genres
+                              if (user.preferredGenres.isNotEmpty) ...[
+                                Text(
+                                  'Preferred Genres',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: user.preferredGenres.map((genre) {
+                                    return Chip(
+                                      label: Text(genre),
+                                      visualDensity: VisualDensity.compact,
+                                    );
+                                  }).toList(),
+                                ),
+                                const SizedBox(height: 12),
+                              ],
+                              // Reading habits summary
+                              if (user.readingPace != null)
+                                _HabitRow(
+                                  icon: Icons.speed,
+                                  label: 'Pace',
+                                  value: _capitalize(user.readingPace!),
+                                ),
+                              if (user.readingFrequency != null)
+                                _HabitRow(
+                                  icon: Icons.calendar_today,
+                                  label: 'Frequency',
+                                  value: _formatFrequency(user.readingFrequency!),
+                                ),
+                              if (user.dailyReadingTime != null)
+                                _HabitRow(
+                                  icon: Icons.schedule,
+                                  label: 'Daily Time',
+                                  value: _formatDailyTime(user.dailyReadingTime!),
+                                ),
+                              const SizedBox(height: 16),
+                              // Retake button
+                              OutlinedButton.icon(
+                                onPressed: () {
+                                  ref.read(onboardingCompletedProvider.notifier).state = null;
+                                  context.go('/onboarding');
+                                },
+                                icon: const Icon(Icons.refresh_rounded, size: 18),
+                                label: Text(
+                                  user.onboardingCompleted
+                                      ? 'Retake Taste Test'
+                                      : 'Take Taste Test',
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(double.infinity, 44),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 16),
+
                         // ── Achievements ────────────────────────────────────
                         Consumer(
                            builder: (context, ref, child) {
@@ -618,5 +765,94 @@ class _StatItem extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+// ─── Recommendation Settings Helpers ─────────────────────────────────────────
+
+class _HabitRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _HabitRow({required this.icon, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: AppTheme.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: AppTheme.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+const _archetypeEmojis = {
+  'the_explorer': '🧭',
+  'the_scholar': '📚',
+  'the_dreamer': '🌙',
+  'the_detective': '🔍',
+  'the_romantic': '💕',
+  'the_philosopher': '🧠',
+  'the_speedster': '⚡',
+  'the_curator': '🎨',
+};
+
+const _archetypeNames = {
+  'the_explorer': 'The Explorer',
+  'the_scholar': 'The Scholar',
+  'the_dreamer': 'The Dreamer',
+  'the_detective': 'The Detective',
+  'the_romantic': 'The Romantic',
+  'the_philosopher': 'The Philosopher',
+  'the_speedster': 'The Speedster',
+  'the_curator': 'The Curator',
+};
+
+String _archetypeEmoji(String key) => _archetypeEmojis[key] ?? '📖';
+String _archetypeDisplayName(String key) => _archetypeNames[key] ?? key;
+
+String _capitalize(String s) {
+  if (s.isEmpty) return s;
+  return s.replaceAll('_', ' ').split(' ').map((w) =>
+    w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}'
+  ).join(' ');
+}
+
+String _formatFrequency(String key) {
+  switch (key) {
+    case 'daily': return 'Every day';
+    case 'few_times_week': return 'Few times a week';
+    case 'weekly': return 'Weekly';
+    case 'few_times_month': return 'Few times a month';
+    default: return _capitalize(key);
+  }
+}
+
+String _formatDailyTime(String key) {
+  switch (key) {
+    case 'under_15': return 'Under 15 min';
+    case '15_to_30': return '15–30 min';
+    case '30_to_60': return '30–60 min';
+    case 'over_60': return 'Over 1 hour';
+    default: return _capitalize(key);
   }
 }

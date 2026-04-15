@@ -39,6 +39,15 @@ class User {
   // --- 4. App Settings ---
   final UserSettings settings;
 
+  // --- 5. Onboarding & Recommendation Profile ---
+  final bool onboardingCompleted;
+  final String? readerArchetype;
+  final String? readingPace;
+  final String? preferredPageRange;
+  final String? readingFrequency;
+  final String? dailyReadingTime;
+  final List<String> preferredGenres;
+
   User({
     required this.id,
     required this.username,
@@ -52,6 +61,13 @@ class User {
     required this.currentStreak,
     required this.achievementIds,
     required this.settings,
+    this.onboardingCompleted = false,
+    this.readerArchetype,
+    this.readingPace,
+    this.preferredPageRange,
+    this.readingFrequency,
+    this.dailyReadingTime,
+    this.preferredGenres = const [],
   });
 
   // Updated factory to parse all new fields from the backend
@@ -76,7 +92,16 @@ class User {
       // Settings (using our helper class)
       settings: json['settings'] != null 
         ? UserSettings.fromJson(json['settings'])
-        : UserSettings.fromJson({}), // Provide default settings if null
+        : UserSettings.fromJson({}),
+
+      // Onboarding
+      onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+      readerArchetype: json['readerArchetype'] as String?,
+      readingPace: json['readingPace'] as String?,
+      preferredPageRange: json['preferredPageRange'] as String?,
+      readingFrequency: json['readingFrequency'] as String?,
+      dailyReadingTime: json['dailyReadingTime'] as String?,
+      preferredGenres: (json['preferredGenres'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
     );
   }
 }

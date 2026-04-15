@@ -181,12 +181,12 @@ class _CreateMilestoneDialogState extends ConsumerState<CreateMilestoneDialog> {
                           int.parse(_pageController.text),
                           _selectedDate,
                         );
-                    if (mounted) {
+                    if (context.mounted) {
                       ref.invalidate(groupMilestonesProvider(widget.groupId));
                       Navigator.pop(context);
                     }
                   } catch (e) {
-                    if (mounted) {
+                    if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
                     }
                   } finally {

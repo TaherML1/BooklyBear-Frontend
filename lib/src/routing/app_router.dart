@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../features/auth/presentation/auth_state_provider.dart';
+import '../features/onboarding/data/onboarding_repository.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/signup_screen.dart';
@@ -19,13 +20,18 @@ import '../screens/create_group_screen.dart';
 import '../screens/friends_list_screen.dart';
 import '../screens/public_profile_screen.dart';
 import '../screens/focus_timer_screen.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
+import '../features/discovery/presentation/book_swipe_screen.dart';
 
 // Key for the root navigator (the one that handles full-screen pushes)
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
+/// Tri-state for onboarding: null = not yet checked, true = completed, false = needs onboarding
+final onboardingCompletedProvider = StateProvider<bool?>((ref) => null);
+
 // We turn GoRouter into a Provider so it can read other providers
 final goRouterProvider = Provider<GoRouter>((ref) {
-  final refreshListenable = _AuthRefreshListenable(ref);
+  final refreshListenable = _RouterRefreshListenable(ref);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
@@ -45,6 +51,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final isLoggingIn =
           state.matchedLocation == '/login' ||
           state.matchedLocation == '/signup';
+      final isOnboarding = state.matchedLocation == '/onboarding';
 
       // If we are NOT authenticated...
       if (authState == AuthState.unauthenticated) {
@@ -54,9 +61,28 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       // If we ARE authenticated...
       if (authState == AuthState.authenticated) {
-        // ...and trying to go to login/signup/splash, redirect to home.
+        // ...and trying to go to login/signup/splash...
         if (isLoggingIn || state.matchedLocation == '/splash') {
+          // Check onboarding status before going home
+          final onboardingDone = ref.read(onboardingCompletedProvider);
+          
+          if (onboardingDone == null) {
+            // Not yet checked — trigger the async check
+            _checkOnboardingStatus(ref);
+            // Show splash while we check
+            return '/splash';
+          }
+          
+          if (onboardingDone == false) {
+            return '/onboarding';
+          }
+          
           return '/home';
+        }
+
+        // If they're already on /onboarding, let them stay
+        if (isOnboarding) {
+          return null;
         }
       }
 
@@ -74,12 +100,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SignupScreen(),
       ),
       GoRoute(
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
         path: '/book/:isbn', // Full screen push outside the shell
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) {
           final isbn = state.pathParameters['isbn']!;
           return BookDetailsScreen(isbn: isbn);
         },
+      ),
+      GoRoute(
+        path: '/discover',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BookSwipeScreen(),
       ),
       GoRoute(
         path: '/timer/:userBookId', // Full-screen focus timer outside the shell
@@ -185,8 +220,31 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
-class _AuthRefreshListenable extends ChangeNotifier {
-  _AuthRefreshListenable(Ref ref) {
-    ref.listen(authStateProvider, (_, __) => notifyListeners());
+
+/// Fetches onboarding status from the API and updates the cached provider.
+/// This triggers a router refresh which re-evaluates the redirect.
+Future<void> _checkOnboardingStatus(Ref ref) async {
+  try {
+    final repo = ref.read(onboardingRepositoryProvider);
+    final status = await repo.getOnboardingStatus();
+    ref.read(onboardingCompletedProvider.notifier).state =
+        status['completed'] == true;
+  } catch (e) {
+    // On error, assume onboarding is done so we don't block the user
+    ref.read(onboardingCompletedProvider.notifier).state = true;
+  }
+}
+
+/// Listens to both authState AND onboardingCompleted to trigger router refreshes.
+class _RouterRefreshListenable extends ChangeNotifier {
+  _RouterRefreshListenable(Ref ref) {
+    ref.listen(authStateProvider, (_, next) {
+      // Reset onboarding status when auth changes (login/logout)
+      if (next == AuthState.unauthenticated) {
+        ref.read(onboardingCompletedProvider.notifier).state = null;
+      }
+      notifyListeners();
+    });
+    ref.listen(onboardingCompletedProvider, (_, __) => notifyListeners());
   }
 }

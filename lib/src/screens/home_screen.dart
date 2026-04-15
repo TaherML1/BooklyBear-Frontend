@@ -71,6 +71,10 @@ class HomeScreen extends ConsumerWidget {
                   const BooksForYouSection(),
                   const SizedBox(height: 48),
 
+                  // Discover — Tinder-style Book Swipe CTA
+                  _DiscoverCta(),
+                  const SizedBox(height: 48),
+
                   // Reflections (Social Feed)
                   const SocialFeedSection(),
                 ]),
@@ -519,6 +523,133 @@ class _CurrentlyReadingCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Discover CTA — Tinder‑style Book Swipe ──────────────────────────────────
+class _DiscoverCta extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/discover'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF6C63FF),
+              Color(0xFF9F7AEA),
+              Color(0xFFF687B3),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF6C63FF).withAlpha(50),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Discover',
+                    style: GoogleFonts.notoSerif(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Swipe through books tailored to your taste. Like to save, skip to pass.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: Colors.white.withAlpha(210),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(40),
+                      borderRadius: BorderRadius.circular(100),
+                      border: Border.all(
+                          color: Colors.white.withAlpha(60)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Start Swiping',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.arrow_forward_rounded,
+                            color: Colors.white, size: 16),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Swipe cards icon
+            Stack(
+              children: [
+                Transform.translate(
+                  offset: const Offset(6, 6),
+                  child: Transform.rotate(
+                    angle: 0.12,
+                    child: Container(
+                      width: 56,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(30),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: Colors.white.withAlpha(40)),
+                      ),
+                    ),
+                  ),
+                ),
+                Transform.rotate(
+                  angle: -0.08,
+                  child: Container(
+                    width: 56,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(50),
+                      borderRadius: BorderRadius.circular(10),
+                      border:
+                          Border.all(color: Colors.white.withAlpha(70)),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.swipe_rounded,
+                          color: Colors.white, size: 28),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

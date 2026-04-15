@@ -120,14 +120,14 @@ class GroupStats {
 }
 
 enum ActivityType {
-  pages_read,
-  book_finished,
-  member_joined,
-  member_left,
-  book_selected,
-  milestone_created,
-  vote_cast,
-  book_proposed,
+  pagesRead,
+  bookFinished,
+  memberJoined,
+  memberLeft,
+  bookSelected,
+  milestoneCreated,
+  voteCast,
+  bookProposed,
 }
 
 class GroupActivity {
@@ -146,9 +146,22 @@ class GroupActivity {
   });
 
   factory GroupActivity.fromJson(Map<String, dynamic> json) {
+    final typeString = json['type'] as String? ?? '';
+    final ActivityType type = switch (typeString) {
+      'pages_read' => ActivityType.pagesRead,
+      'book_finished' => ActivityType.bookFinished,
+      'member_joined' => ActivityType.memberJoined,
+      'member_left' => ActivityType.memberLeft,
+      'book_selected' => ActivityType.bookSelected,
+      'milestone_created' => ActivityType.milestoneCreated,
+      'vote_cast' => ActivityType.voteCast,
+      'book_proposed' => ActivityType.bookProposed,
+      _ => ActivityType.pagesRead, // Fallback
+    };
+
     return GroupActivity(
       id: json['id'] ?? '',
-      type: ActivityType.values.byName(json['type']),
+      type: type,
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
       createdAt: DateTime.parse(json['createdAt']),
       user: GroupMemberUser.fromJson(json['user']),

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:booklybear/src/utils/dio_client.dart';
-
+import 'package:booklybear/src/utils/app_logger.dart';
 
 class AuthRepository {
   final Dio _dio;
@@ -9,18 +9,21 @@ class AuthRepository {
   AuthRepository(this._dio);
 
   // Call POST /api/auth/login
-  Future<String> login({required String email, required String password}) async {
+  Future<String> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-      print('--- [AUTH] Attempting login for: $email');
-      final response = await _dio.post('/auth/login', data: {
-        'email': email,
-        'password': password,
-      });
-      print('--- [AUTH] Login successful');
+      AppLogger.info('--- [AUTH] Attempting login for: $email');
+      final response = await _dio.post(
+        '/auth/login',
+        data: {'email': email, 'password': password},
+      );
+      AppLogger.info('--- [AUTH] Login successful');
       return response.data['token'];
     } on DioException catch (e) {
-      print('--- [AUTH] Login ERROR: ${e.type} - ${e.message}');
-      if (e.error != null) print('--- [AUTH] Details: ${e.error}');
+      AppLogger.error('--- [AUTH] Login ERROR: ${e.type} - ${e.message}');
+      if (e.error != null) AppLogger.error('--- [AUTH] Details: ${e.error}');
       throw e.response?.data['message'] ?? 'Login failed';
     }
   }
@@ -32,16 +35,19 @@ class AuthRepository {
     required String password,
   }) async {
     try {
-      print('--- [AUTH] Attempting registration for: $username ($email)');
-      await _dio.post('/auth/register', data: {
-        'username': username,
-        'email': email,
-        'password': password,
-      });
-      print('--- [AUTH] Registration successful');
+      AppLogger.info(
+        '--- [AUTH] Attempting registration for: $username ($email)',
+      );
+      await _dio.post(
+        '/auth/register',
+        data: {'username': username, 'email': email, 'password': password},
+      );
+      AppLogger.info('--- [AUTH] Registration successful');
     } on DioException catch (e) {
-      print('--- [AUTH] Registration ERROR: ${e.type} - ${e.message}');
-      if (e.error != null) print('--- [AUTH] Details: ${e.error}');
+      AppLogger.error(
+        '--- [AUTH] Registration ERROR: ${e.type} - ${e.message}',
+      );
+      if (e.error != null) AppLogger.error('--- [AUTH] Details: ${e.error}');
       throw e.response?.data['message'] ?? 'Registration failed';
     }
   }

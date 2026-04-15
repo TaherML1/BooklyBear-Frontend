@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'app_logger.dart';
 
 String getApiBaseUrl() {
   // Updated to match your PC's actual IPv4 address
   const url = 'http://192.168.1.68:3000/api';
-  print('--- [CONFIG] Using API Base URL: $url');
+  AppLogger.info('--- [CONFIG] Using API Base URL: $url');
   return url;
 }
 
@@ -46,7 +47,7 @@ final dioProvider = Provider((ref) {
     LogInterceptor(
       requestBody: true,
       responseBody: true,
-      logPrint: (obj) => print('--- [DIO] $obj'),
+      logPrint: (obj) => AppLogger.debug('--- [DIO] $obj'),
     ),
   );
 
