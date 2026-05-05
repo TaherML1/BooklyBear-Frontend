@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../utils/app_logger.dart';
 import '../data/recommendation_repository.dart';
 import '../../../theme/app_theme.dart';
+import '../../../widgets/book_cover_image.dart';
 
 class BooksForYouSection extends ConsumerWidget {
   const BooksForYouSection({super.key});
@@ -31,9 +32,31 @@ class BooksForYouSection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Curated For You',
-              style: Theme.of(context).textTheme.headlineLarge,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Curated For You',
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
+                TextButton(
+                  onPressed: () => context.push('/recommendations'),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: Text(
+                    'See All →',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -60,23 +83,12 @@ class BooksForYouSection extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: AppTheme.ambientShadow,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              book.coverImageUrl,
-                              height: 180,
-                              width: 120,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                height: 180,
-                                width: 120,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.surfaceContainerHigh,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Icon(Icons.book, size: 40, color: AppTheme.onSurfaceVariant),
-                              ),
-                            ),
+                          child: BookCoverImage(
+                            coverImageUrl: book.coverImageUrl,
+                            bookTitle: book.title,
+                            width: 120,
+                            height: 180,
+                            borderRadius: 12,
                           ),
                         ),
                           Padding(

@@ -22,6 +22,7 @@ import '../screens/public_profile_screen.dart';
 import '../screens/focus_timer_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/discovery/presentation/book_swipe_screen.dart';
+import '../features/discovery/presentation/recommendations_screen.dart';
 
 // Key for the root navigator (the one that handles full-screen pushes)
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -115,6 +116,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/discover',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const BookSwipeScreen(),
+      ),
+      GoRoute(
+        path: '/recommendations',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const RecommendationsScreen(),
       ),
       GoRoute(
         path: '/timer/:userBookId', // Full-screen focus timer outside the shell

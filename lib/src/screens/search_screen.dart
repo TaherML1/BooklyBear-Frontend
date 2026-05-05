@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import '../utils/dio_client.dart';
 import '../features/books/domain/book.dart';
 import '../theme/app_theme.dart';
+import '../widgets/book_cover_image.dart';
 
 // ─── Provider: drives the search query string ────────────────────────────────
 final searchQueryProvider = StateProvider<String>((ref) => '');
@@ -182,24 +183,12 @@ class _BookSearchCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Cover image
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  book.coverImageUrl,
-                  width: 56,
-                  height: 82,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    width: 56,
-                    height: 82,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceContainerHigh,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.book, size: 28, color: AppTheme.onSurfaceVariant),
-                  ),
-                ),
+              // Cover image with smart fallback
+              BookCoverImage(
+                coverImageUrl: book.coverImageUrl,
+                bookTitle: book.title,
+                width: 56,
+                height: 82,
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -224,21 +213,24 @@ class _BookSearchCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        const Icon(
-                          Icons.menu_book,
-                          size: 13,
-                          color: AppTheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${book.pageCount} pages',
-                          style: theme.textTheme.labelSmall,
-                        ),
-                        if (book.categories.isNotEmpty) ...[
-                          Text(
-                            ' · ',
-                            style: GoogleFonts.inter(color: AppTheme.outlineVariant),
+                        if (book.pageCount > 0) ...[
+                          const Icon(
+                            Icons.menu_book,
+                            size: 13,
+                            color: AppTheme.onSurfaceVariant,
                           ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${book.pageCount} pages',
+                            style: theme.textTheme.labelSmall,
+                          ),
+                        ],
+                        if (book.categories.isNotEmpty) ...[
+                          if (book.pageCount > 0)
+                            Text(
+                              ' · ',
+                              style: GoogleFonts.inter(color: AppTheme.outlineVariant),
+                            ),
                           Expanded(
                             child: Text(
                               book.categories.first,

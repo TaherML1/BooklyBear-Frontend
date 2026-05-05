@@ -10,6 +10,7 @@ import '../features/books/presentation/books_for_you_section.dart';
 import '../features/social/presentation/social_feed_section.dart';
 import '../theme/app_theme.dart';
 import '../utils/app_logger.dart';
+import '../widgets/book_cover_image.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -428,23 +429,12 @@ class _CurrentlyReadingCard extends StatelessWidget {
         child: Row(
           children: [
             // Cover — let it feel like a prized possession
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                book.coverImageUrl,
-                width: 64,
-                height: 96,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: 64,
-                  height: 96,
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.book, size: 28, color: AppTheme.onSurfaceVariant),
-                ),
-              ),
+            BookCoverImage(
+              coverImageUrl: book.coverImageUrl,
+              bookTitle: book.title,
+              width: 64,
+              height: 96,
+              borderRadius: 10,
             ),
             const SizedBox(width: 16),
 

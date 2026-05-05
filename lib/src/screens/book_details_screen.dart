@@ -256,10 +256,12 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                 // Page count & publisher
                 Row(
                   children: [
-                    const Icon(Icons.menu_book, size: 16, color: AppTheme.onSurfaceVariant),
-                    const SizedBox(width: 4),
-                    Text('${book.pageCount} pages', style: textTheme.labelSmall),
-                    Text(' · ', style: TextStyle(color: AppTheme.outlineVariant)),
+                    if (book.pageCount > 0) ...[
+                      const Icon(Icons.menu_book, size: 16, color: AppTheme.onSurfaceVariant),
+                      const SizedBox(width: 4),
+                      Text('${book.pageCount} pages', style: textTheme.labelSmall),
+                      Text(' · ', style: TextStyle(color: AppTheme.outlineVariant)),
+                    ],
                     Expanded(
                       child: Text(
                         book.publisher ?? 'Unknown publisher',
