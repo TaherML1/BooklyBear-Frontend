@@ -218,19 +218,31 @@ class _RecommendationCard extends StatelessWidget {
                         ),
                       ),
 
-                      // Explanation
+                      // Explanation chip — "Because you read X"
                       if (recommendation.explanation != null) ...[
                         const SizedBox(height: 10),
-                        Text(
-                          recommendation.explanation!,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            color: AppTheme.outline,
-                            fontStyle: FontStyle.italic,
-                            height: 1.4,
-                          ),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.auto_stories_rounded,
+                              size: 11,
+                              color: AppTheme.outline,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                recommendation.explanation!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: AppTheme.outline,
+                                  fontStyle: FontStyle.italic,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
 
@@ -279,14 +291,18 @@ class _MatchBadge extends StatelessWidget {
   final double score;
   const _MatchBadge({required this.score});
 
+  // Returns (label, color) based on score
+  static (String, Color) _labelAndColor(double score) {
+    if (score >= 0.90) return ('Top Pick', const Color(0xFF1B4332));
+    if (score >= 0.75) return ('Strong Match', const Color(0xFF2D6A4F));
+    if (score >= 0.55) return ('Good Match', const Color(0xFF4D7E5B));
+    return ('You Might Like', const Color(0xFF6B7280));
+  }
+
   @override
   Widget build(BuildContext context) {
-    final pct = (score * 100).clamp(0, 100).toInt();
-    final Color badgeColor = pct >= 75
-        ? const Color(0xFF2D6A4F)
-        : pct >= 50
-        ? const Color(0xFF4D7E5B)
-        : AppTheme.secondary;
+    final pct = (score * 100).clamp(0, 100).round();
+    final (label, badgeColor) = _labelAndColor(score);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -305,7 +321,7 @@ class _MatchBadge extends StatelessWidget {
           ),
           const SizedBox(width: 3),
           Text(
-            '$pct% match',
+            '$pct% · $label',
             style: GoogleFonts.inter(
               fontSize: 10,
               fontWeight: FontWeight.w700,

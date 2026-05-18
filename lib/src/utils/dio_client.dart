@@ -5,7 +5,7 @@ import 'app_logger.dart';
 
 String getApiBaseUrl() {
   // Updated to match your PC's actual IPv4 address
-  const url = 'http://192.168.1.68SS:3000/api';
+  const url = 'http://192.168.1.76:3000/api';
   AppLogger.info('--- [CONFIG] Using API Base URL: $url');
   return url;
 }
