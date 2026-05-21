@@ -33,7 +33,7 @@ class _BookCoverImageState extends State<BookCoverImage> {
 
   // Open Library returns a tiny 43-byte GIF when there's no cover.
   // We detect it by checking the image dimensions after loading.
-  bool _imageIsBlank = false;
+  final bool _imageIsBlank = false;
 
   @override
   Widget build(BuildContext context) {
@@ -98,7 +98,8 @@ class _BookCoverImageState extends State<BookCoverImage> {
         : 'B';
 
     // Generate a deterministic color from the title
-    final hue = (widget.bookTitle.codeUnits.fold(0, (a, b) => a + b) % 30) * 12.0;
+    final hue =
+        (widget.bookTitle.codeUnits.fold(0, (a, b) => a + b) % 30) * 12.0;
 
     return Container(
       width: widget.width,

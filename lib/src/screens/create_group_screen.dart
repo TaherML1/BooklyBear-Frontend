@@ -30,7 +30,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       ref.invalidate(myGroupsProvider);
       ref.invalidate(allGroupsProvider);
       if (mounted) {
-        context.pop();
+        context.go('/groups');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Club created successfully!')),
         );

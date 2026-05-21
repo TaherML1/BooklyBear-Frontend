@@ -82,22 +82,22 @@ class ProfileScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               CircleAvatar(
-                                radius: 44,
-                                backgroundColor: AppTheme.primaryFixed,
-                                backgroundImage: user.avatarUrl != null
+                                radius: 40,
+                                backgroundColor: AppTheme.primaryContainer,
+                                backgroundImage: (user.avatarUrl?.isNotEmpty == true)
                                     ? CachedNetworkImageProvider(
                                         user.avatarUrl!,
                                       )
                                     : null,
-                                child: user.avatarUrl == null
+                                child: (user.avatarUrl?.isNotEmpty != true)
                                     ? Text(
                                         user.displayName.isNotEmpty
                                             ? user.displayName[0].toUpperCase()
                                             : '?',
-                                        style: GoogleFonts.notoSerif(
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppTheme.onPrimaryFixed,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.onPrimaryContainer,
                                         ),
                                       )
                                     : null,
@@ -110,7 +110,9 @@ class ProfileScreen extends ConsumerWidget {
                                   children: [
                                     Text(
                                       user.displayName,
-                                      style: Theme.of(context).textTheme.headlineLarge,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.headlineLarge,
                                     ),
                                     Text(
                                       '@${user.username}',
@@ -186,7 +188,9 @@ class ProfileScreen extends ConsumerWidget {
                                         ),
                                         decoration: BoxDecoration(
                                           color: AppTheme.primary,
-                                          borderRadius: BorderRadius.circular(100),
+                                          borderRadius: BorderRadius.circular(
+                                            100,
+                                          ),
                                         ),
                                         child: Row(
                                           children: [
@@ -216,7 +220,9 @@ class ProfileScreen extends ConsumerWidget {
                                         ),
                                         decoration: BoxDecoration(
                                           color: AppTheme.primaryFixed,
-                                          borderRadius: BorderRadius.circular(100),
+                                          borderRadius: BorderRadius.circular(
+                                            100,
+                                          ),
                                         ),
                                         child: Row(
                                           children: [
@@ -382,13 +388,19 @@ class ProfileScreen extends ConsumerWidget {
                               const SizedBox(height: 8),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.email_outlined, color: AppTheme.onSurfaceVariant),
+                                leading: const Icon(
+                                  Icons.email_outlined,
+                                  color: AppTheme.onSurfaceVariant,
+                                ),
                                 title: const Text('Email'),
                                 subtitle: Text(user.email),
                               ),
                               ListTile(
                                 contentPadding: EdgeInsets.zero,
-                                leading: const Icon(Icons.alternate_email, color: AppTheme.onSurfaceVariant),
+                                leading: const Icon(
+                                  Icons.alternate_email,
+                                  color: AppTheme.onSurfaceVariant,
+                                ),
                                 title: const Text('Username'),
                                 subtitle: Text('@${user.username}'),
                               ),
@@ -404,7 +416,8 @@ class ProfileScreen extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Recommendation Settings',
@@ -422,7 +435,9 @@ class ProfileScreen extends ConsumerWidget {
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppTheme.primaryFixed,
-                                        borderRadius: BorderRadius.circular(100),
+                                        borderRadius: BorderRadius.circular(
+                                          100,
+                                        ),
                                       ),
                                       child: Text(
                                         'Active',
@@ -447,17 +462,21 @@ class ProfileScreen extends ConsumerWidget {
                                   ),
                                   child: Row(
                                     children: [
-                                      Text(
-                                        _archetypeEmoji(user.readerArchetype!),
-                                        style: const TextStyle(fontSize: 32),
+                                      Icon(
+                                        _archetypeIcon(user.readerArchetype!),
+                                        size: 32,
+                                        color: AppTheme.primary,
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              _archetypeDisplayName(user.readerArchetype!),
+                                              _archetypeDisplayName(
+                                                user.readerArchetype!,
+                                              ),
                                               style: GoogleFonts.notoSerif(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w700,
@@ -468,7 +487,8 @@ class ProfileScreen extends ConsumerWidget {
                                               'Your reader personality',
                                               style: GoogleFonts.inter(
                                                 fontSize: 12,
-                                                color: AppTheme.onSurfaceVariant,
+                                                color:
+                                                    AppTheme.onSurfaceVariant,
                                               ),
                                             ),
                                           ],
@@ -513,22 +533,35 @@ class ProfileScreen extends ConsumerWidget {
                                 _HabitRow(
                                   icon: Icons.calendar_today,
                                   label: 'Frequency',
-                                  value: _formatFrequency(user.readingFrequency!),
+                                  value: _formatFrequency(
+                                    user.readingFrequency!,
+                                  ),
                                 ),
                               if (user.dailyReadingTime != null)
                                 _HabitRow(
                                   icon: Icons.schedule,
                                   label: 'Daily Time',
-                                  value: _formatDailyTime(user.dailyReadingTime!),
+                                  value: _formatDailyTime(
+                                    user.dailyReadingTime!,
+                                  ),
                                 ),
                               const SizedBox(height: 16),
                               // Retake button
                               OutlinedButton.icon(
                                 onPressed: () {
-                                  ref.read(onboardingCompletedProvider.notifier).state = null;
+                                  ref
+                                          .read(
+                                            onboardingCompletedProvider
+                                                .notifier,
+                                          )
+                                          .state =
+                                      null;
                                   context.go('/onboarding');
                                 },
-                                icon: const Icon(Icons.refresh_rounded, size: 18),
+                                icon: const Icon(
+                                  Icons.refresh_rounded,
+                                  size: 18,
+                                ),
                                 label: Text(
                                   user.onboardingCompleted
                                       ? 'Retake Taste Test'
@@ -546,51 +579,78 @@ class ProfileScreen extends ConsumerWidget {
 
                         // ── Achievements ────────────────────────────────────
                         Consumer(
-                           builder: (context, ref, child) {
-                             final achievementsAsync = ref.watch(achievementsProvider);
-                             return achievementsAsync.when(
-                               loading: () => const Center(child: CircularProgressIndicator()),
-                               error: (err, _) => const SizedBox.shrink(),
-                               data: (achievements) {
-                                 if (achievements.isEmpty) return const SizedBox.shrink();
-                                 return _SectionCard(
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Text('Achievements', style: GoogleFonts.notoSerif(
-                                         fontWeight: FontWeight.w600, fontSize: 16, color: AppTheme.onSurface,
-                                       )),
-                                       const SizedBox(height: 12),
-                                       SizedBox(
-                                         height: 100,
-                                         child: ListView.builder(
-                                           scrollDirection: Axis.horizontal,
-                                           itemCount: achievements.length,
-                                           itemBuilder: (context, index) {
-                                             final ach = achievements[index];
-                                             return Opacity(
-                                               opacity: ach.unlocked ? 1.0 : 0.4,
-                                               child: Container(
-                                                 width: 80,
-                                                 margin: const EdgeInsets.only(right: 12),
-                                                 child: Column(
-                                                   children: [
-                                                     Text(ach.icon, style: const TextStyle(fontSize: 32)),
-                                                     const SizedBox(height: 4),
-                                                     Text(ach.name, style: GoogleFonts.inter(fontSize: 10, color: AppTheme.onSurfaceVariant), textAlign: TextAlign.center),
-                                                   ],
-                                                 ),
-                                               ),
-                                             );
-                                           },
-                                         ),
-                                       ),
-                                     ],
-                                   ),
-                                 );
-                               },
-                             );
-                           },
+                          builder: (context, ref, child) {
+                            final achievementsAsync = ref.watch(
+                              achievementsProvider,
+                            );
+                            return achievementsAsync.when(
+                              loading: () => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                              error: (err, _) => const SizedBox.shrink(),
+                              data: (achievements) {
+                                if (achievements.isEmpty)
+                                  return const SizedBox.shrink();
+                                return _SectionCard(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Achievements',
+                                        style: GoogleFonts.notoSerif(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          color: AppTheme.onSurface,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      SizedBox(
+                                        height: 100,
+                                        child: ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: achievements.length,
+                                          itemBuilder: (context, index) {
+                                            final ach = achievements[index];
+                                            return Opacity(
+                                              opacity: ach.unlocked ? 1.0 : 0.4,
+                                              child: Container(
+                                                width: 80,
+                                                margin: const EdgeInsets.only(
+                                                  right: 12,
+                                                ),
+                                                child: Column(
+                                                  children: [
+                                                    Text(
+                                                      ach.icon,
+                                                      style: const TextStyle(
+                                                        fontSize: 32,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 4),
+                                                    Text(
+                                                      ach.name,
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 10,
+                                                        color: AppTheme
+                                                            .onSurfaceVariant,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
                         ),
 
                         const SizedBox(height: 16),
@@ -600,17 +660,26 @@ class ProfileScreen extends ConsumerWidget {
                           builder: (context, ref, child) {
                             final badgesAsync = ref.watch(userBadgesProvider);
                             return badgesAsync.when(
-                              loading: () => const Center(child: CircularProgressIndicator()),
+                              loading: () => const Center(
+                                child: CircularProgressIndicator(),
+                              ),
                               error: (err, _) => const SizedBox.shrink(),
                               data: (badges) {
-                                if (badges.isEmpty) return const SizedBox.shrink();
+                                if (badges.isEmpty)
+                                  return const SizedBox.shrink();
                                 return _SectionCard(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Text('Earned Badges', style: GoogleFonts.notoSerif(
-                                        fontWeight: FontWeight.w600, fontSize: 16, color: AppTheme.onSurface,
-                                      )),
+                                      Text(
+                                        'Earned Badges',
+                                        style: GoogleFonts.notoSerif(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16,
+                                          color: AppTheme.onSurface,
+                                        ),
+                                      ),
                                       const SizedBox(height: 12),
                                       SizedBox(
                                         height: 100,
@@ -621,12 +690,30 @@ class ProfileScreen extends ConsumerWidget {
                                             final badge = badges[index];
                                             return Container(
                                               width: 80,
-                                              margin: const EdgeInsets.only(right: 12),
+                                              margin: const EdgeInsets.only(
+                                                right: 12,
+                                              ),
                                               child: Column(
                                                 children: [
-                                                  Text(badge.icon, style: const TextStyle(fontSize: 32)),
+                                                  Text(
+                                                    badge.icon,
+                                                    style: const TextStyle(
+                                                      fontSize: 32,
+                                                    ),
+                                                  ),
                                                   const SizedBox(height: 4),
-                                                  Text(badge.name, style: GoogleFonts.inter(fontSize: 10, color: AppTheme.onSurfaceVariant), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                                                  Text(
+                                                    badge.name,
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 10,
+                                                      color: AppTheme
+                                                          .onSurfaceVariant,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
                                                 ],
                                               ),
                                             );
@@ -653,7 +740,9 @@ class ProfileScreen extends ConsumerWidget {
                             minimumSize: const Size(double.infinity, 52),
                             backgroundColor: AppTheme.errorContainer,
                             foregroundColor: AppTheme.onErrorContainer,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 100), // nav bar clearance
@@ -774,7 +863,11 @@ class _HabitRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
-  const _HabitRow({required this.icon, required this.label, required this.value});
+  const _HabitRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -805,15 +898,15 @@ class _HabitRow extends StatelessWidget {
   }
 }
 
-const _archetypeEmojis = {
-  'the_explorer': '🧭',
-  'the_scholar': '📚',
-  'the_dreamer': '🌙',
-  'the_detective': '🔍',
-  'the_romantic': '💕',
-  'the_philosopher': '🧠',
-  'the_speedster': '⚡',
-  'the_curator': '🎨',
+const _archetypeIcons = <String, IconData>{
+  'the_explorer': Icons.explore,
+  'the_scholar': Icons.school,
+  'the_dreamer': Icons.dark_mode,
+  'the_detective': Icons.search,
+  'the_romantic': Icons.favorite,
+  'the_philosopher': Icons.psychology,
+  'the_speedster': Icons.bolt,
+  'the_curator': Icons.palette,
 };
 
 const _archetypeNames = {
@@ -827,32 +920,45 @@ const _archetypeNames = {
   'the_curator': 'The Curator',
 };
 
-String _archetypeEmoji(String key) => _archetypeEmojis[key] ?? '📖';
+IconData _archetypeIcon(String key) =>
+    _archetypeIcons[key] ?? Icons.auto_stories;
 String _archetypeDisplayName(String key) => _archetypeNames[key] ?? key;
 
 String _capitalize(String s) {
   if (s.isEmpty) return s;
-  return s.replaceAll('_', ' ').split(' ').map((w) =>
-    w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}'
-  ).join(' ');
+  return s
+      .replaceAll('_', ' ')
+      .split(' ')
+      .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
 }
 
 String _formatFrequency(String key) {
   switch (key) {
-    case 'daily': return 'Every day';
-    case 'few_times_week': return 'Few times a week';
-    case 'weekly': return 'Weekly';
-    case 'few_times_month': return 'Few times a month';
-    default: return _capitalize(key);
+    case 'daily':
+      return 'Every day';
+    case 'few_times_week':
+      return 'Few times a week';
+    case 'weekly':
+      return 'Weekly';
+    case 'few_times_month':
+      return 'Few times a month';
+    default:
+      return _capitalize(key);
   }
 }
 
 String _formatDailyTime(String key) {
   switch (key) {
-    case 'under_15': return 'Under 15 min';
-    case '15_to_30': return '15–30 min';
-    case '30_to_60': return '30–60 min';
-    case 'over_60': return 'Over 1 hour';
-    default: return _capitalize(key);
+    case 'under_15':
+      return 'Under 15 min';
+    case '15_to_30':
+      return '15–30 min';
+    case '30_to_60':
+      return '30–60 min';
+    case 'over_60':
+      return 'Over 1 hour';
+    default:
+      return _capitalize(key);
   }
 }

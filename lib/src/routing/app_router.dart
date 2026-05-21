@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/auth/presentation/auth_state_provider.dart';
 import '../features/onboarding/data/onboarding_repository.dart';
 import '../screens/home_screen.dart';
+import '../screens/create_post_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/signup_screen.dart';
 import '../screens/splash_screen.dart';
@@ -116,6 +117,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/discover',
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const BookSwipeScreen(),
+      ),
+      GoRoute(
+        path: '/create-post',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const CreatePostScreen(),
       ),
       GoRoute(
         path: '/recommendations',

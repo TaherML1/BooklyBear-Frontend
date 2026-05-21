@@ -32,6 +32,20 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> with SingleTickerPr
     return Scaffold(
       appBar: AppBar(
         title: Text('Reading Clubs', style: Theme.of(context).textTheme.headlineMedium),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: FilledButton.icon(
+              onPressed: () => context.push('/groups/create'),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Create'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: AppTheme.onPrimary,
+              ),
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [
@@ -86,8 +100,14 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> with SingleTickerPr
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Discover clubs to join!',
+                  'Discover clubs to join or create your own!',
                   style: GoogleFonts.inter(color: AppTheme.outline, fontSize: 13),
+                ),
+                const SizedBox(height: 24),
+                OutlinedButton.icon(
+                  onPressed: () => context.push('/groups/create'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create a Club'),
                 ),
               ],
             ),
@@ -127,6 +147,12 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> with SingleTickerPr
                 Text(
                   'No clubs available to discover.',
                   style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 15),
+                ),
+                const SizedBox(height: 24),
+                OutlinedButton.icon(
+                  onPressed: () => context.push('/groups/create'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create a Club'),
                 ),
               ],
             ),

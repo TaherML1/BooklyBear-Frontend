@@ -97,19 +97,19 @@ class ActivityItem extends StatelessWidget {
       case ActivityType.pagesRead:
         return '$user read ${meta['pagesRead']} pages of "${meta['bookTitle']}"';
       case ActivityType.bookFinished:
-        return '🎉 $user finished "${meta['bookTitle']}"!';
+        return '$user finished "${meta['bookTitle']}"';
       case ActivityType.memberJoined:
         return '$user joined the club';
       case ActivityType.memberLeft:
         return '$user left the club';
       case ActivityType.bookSelected:
-        return '📖 Group selected "${meta['bookTitle']}" to read next!';
+        return 'The group selected "${meta['bookTitle']}" to read next';
       case ActivityType.milestoneCreated:
-        return '📅 New milestone: "${meta['title']}" by ${meta['targetPage']} pages';
+        return 'New milestone: "${meta['title']}" by ${meta['targetPage']} pages';
       case ActivityType.voteCast:
         return '$user voted for a book';
       case ActivityType.bookProposed:
-        return '💡 $user proposed "${meta['bookTitle']}"';
+        return '$user proposed "${meta['bookTitle']}"';
     }
   }
 

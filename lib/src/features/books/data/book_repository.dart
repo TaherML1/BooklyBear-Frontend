@@ -22,6 +22,26 @@ class BookRepository {
       rethrow;
     }
   }
+
+  /// Searches for books using the backend /search endpoint.
+  Future<List<Book>> searchBooks(String query) async {
+    try {
+      final response = await _dio.get('/search', queryParameters: {'q': query});
+      final hits = response.data['hits'] as List<dynamic>? ?? [];
+      return hits
+          .map((h) => Book.fromJson(h['document'] as Map<String, dynamic>? ?? {}))
+          .where((book) => book.id.isNotEmpty)
+          .toList();
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map<String, dynamic>) {
+        throw data['message'] ?? 'Search failed';
+      }
+      throw 'Search failed: ${e.message}';
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 // 1. Provider for the Repository

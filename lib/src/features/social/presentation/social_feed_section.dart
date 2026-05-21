@@ -8,6 +8,8 @@ import '../data/post_repository.dart';
 import '../domain/post.dart';
 import '../../books/domain/book.dart';
 import '../../../theme/app_theme.dart';
+import 'create_post_sheet.dart';
+import 'post_comments_sheet.dart';
 
 class SocialFeedSection extends ConsumerWidget {
   const SocialFeedSection({super.key});
@@ -20,10 +22,6 @@ class SocialFeedSection extends ConsumerWidget {
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (err, _) => Center(child: Text('Error loading feed: $err')),
       data: (posts) {
-        if (posts.isEmpty) {
-          return const _EmptyFeedPlaceholder();
-        }
-
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -32,7 +30,17 @@ class SocialFeedSection extends ConsumerWidget {
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 16),
-            ...posts.map((post) => _PostCard(post: post)),
+            
+            // ── Share a thought button ──
+            _CreatePostPrompt(onTap: () {
+              context.push('/create-post');
+            }),
+            const SizedBox(height: 16),
+
+            if (posts.isEmpty) 
+              const _EmptyFeedPlaceholder()
+            else
+              ...posts.map((post) => _PostCard(post: post)),
           ],
         );
       },
@@ -40,9 +48,105 @@ class SocialFeedSection extends ConsumerWidget {
   }
 }
 
-class _PostCard extends StatelessWidget {
+/// Tappable prompt that opens the create-post sheet.
+class _CreatePostPrompt extends StatelessWidget {
+  final VoidCallback onTap;
+  const _CreatePostPrompt({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.edit_note, size: 22, color: AppTheme.outline),
+            const SizedBox(width: 12),
+            Text(
+              'Share a thought about what you are reading...',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: AppTheme.outline,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PostCard extends ConsumerStatefulWidget {
   final Post post;
   const _PostCard({required this.post});
+
+  @override
+  ConsumerState<_PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends ConsumerState<_PostCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _likeAnimController;
+  late Animation<double> _likeScale;
+  late Post _post;
+
+  @override
+  void initState() {
+    super.initState();
+    _post = widget.post;
+    _likeAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _likeScale = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 50),
+    ]).animate(CurvedAnimation(
+      parent: _likeAnimController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _likeAnimController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleLike() async {
+    // Optimistic update
+    final wasLiked = _post.isLiked;
+    setState(() {
+      _post.isLiked = !wasLiked;
+      _post.likeCount += wasLiked ? -1 : 1;
+    });
+    _likeAnimController.forward(from: 0);
+
+    try {
+      await ref.read(postRepositoryProvider).toggleLike(_post.id);
+    } catch (_) {
+      // Revert on error
+      if (mounted) {
+        setState(() {
+          _post.isLiked = wasLiked;
+          _post.likeCount += wasLiked ? 1 : -1;
+        });
+      }
+    }
+  }
+
+  void _openComments() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => PostCommentsSheet(postId: _post.id),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +156,7 @@ class _PostCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: post.isDiscovery 
+        color: _post.isDiscovery 
             ? AppTheme.surfaceContainerLow 
             : AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
@@ -66,13 +170,13 @@ class _PostCard extends StatelessWidget {
               CircleAvatar(
                 radius: 20,
                 backgroundColor: AppTheme.primaryFixed,
-                backgroundImage: post.user.avatarUrl != null 
-                    ? CachedNetworkImageProvider(post.user.avatarUrl!) 
+                backgroundImage: (_post.user.avatarUrl?.isNotEmpty == true)
+                    ? CachedNetworkImageProvider(_post.user.avatarUrl!) 
                     : null,
-                child: post.user.avatarUrl == null 
+                child: (_post.user.avatarUrl?.isNotEmpty != true)
                     ? Text(
-                        post.user.displayName.isNotEmpty 
-                            ? post.user.displayName[0].toUpperCase() 
+                        _post.user.displayName.isNotEmpty 
+                            ? _post.user.displayName[0].toUpperCase() 
                             : '?',
                         style: GoogleFonts.notoSerif(
                           color: AppTheme.onPrimaryFixed,
@@ -90,7 +194,7 @@ class _PostCard extends StatelessWidget {
                       children: [
                         Flexible(
                           child: Text(
-                            post.user.displayName,
+                            _post.user.displayName,
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.w600,
                               color: AppTheme.onSurface,
@@ -98,14 +202,14 @@ class _PostCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        if (post.isDiscovery) ...[
+                        if (_post.isDiscovery) ...[
                           const SizedBox(width: 4),
                           const Icon(Icons.auto_awesome, size: 14, color: AppTheme.primary),
                         ],
                       ],
                     ),
                     Text(
-                      timeago.format(post.createdAt),
+                      timeago.format(_post.createdAt),
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -115,27 +219,84 @@ class _PostCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            post.content,
+            _post.content,
             style: GoogleFonts.inter(
               color: AppTheme.onSurface,
               height: 1.5,
             ),
           ),
-          if (post.book != null) ...[
+          if (_post.book != null) ...[
             const SizedBox(height: 12),
-            _BookTag(book: post.book!),
+            _BookTag(book: _post.book!),
+          ],
+          if (_post.tags.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _post.tags.map((tag) => Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '#$tag',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppTheme.onPrimaryContainer,
+                  ),
+                ),
+              )).toList(),
+            ),
           ],
           const SizedBox(height: 14),
+
+          // ── Like + Comment actions ──
           Row(
             children: [
-              Icon(Icons.favorite_border, size: 20, color: AppTheme.primary),
-              const SizedBox(width: 4),
+              // Like button with animation
+              GestureDetector(
+                onTap: _toggleLike,
+                child: ScaleTransition(
+                  scale: _likeScale,
+                  child: Icon(
+                    _post.isLiked ? Icons.favorite : Icons.favorite_border,
+                    size: 22,
+                    color: _post.isLiked ? AppTheme.error : AppTheme.primary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
               Text(
-                '${post.likeCount}',
+                '${_post.likeCount}',
                 style: GoogleFonts.inter(
                   color: AppTheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
                   fontSize: 13,
+                ),
+              ),
+              const SizedBox(width: 24),
+              // Comment button
+              GestureDetector(
+                onTap: _openComments,
+                child: const Icon(
+                  Icons.chat_bubble_outline,
+                  size: 20,
+                  color: AppTheme.primary,
+                ),
+              ),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: _openComments,
+                child: Text(
+                  '${_post.commentCount}',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
@@ -165,7 +326,7 @@ class _BookTag extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: CachedNetworkImage(
+              child: book.coverImageUrl.isNotEmpty ? CachedNetworkImage(
                 imageUrl: book.coverImageUrl,
                 width: 40,
                 height: 60,
@@ -181,6 +342,11 @@ class _BookTag extends StatelessWidget {
                   color: AppTheme.surfaceContainerHighest,
                   child: const Icon(Icons.book, size: 20, color: AppTheme.onSurfaceVariant),
                 ),
+              ) : Container(
+                  width: 40,
+                  height: 60,
+                  color: AppTheme.surfaceContainerHighest,
+                  child: const Icon(Icons.book, size: 20, color: AppTheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 12),
@@ -223,10 +389,10 @@ class _EmptyFeedPlaceholder extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          const Icon(Icons.library_books, size: 64, color: AppTheme.outlineVariant),
+          const Icon(Icons.forum_outlined, size: 64, color: AppTheme.outlineVariant),
           const SizedBox(height: 12),
           Text(
-            'Your Feed is Empty',
+            'Your Feed is Quiet',
             style: GoogleFonts.notoSerif(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -235,7 +401,7 @@ class _EmptyFeedPlaceholder extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'Discover books to start your journey!',
+            'Add friends or share your thoughts to see activity here.',
             style: GoogleFonts.inter(
               color: AppTheme.onSurfaceVariant,
               fontSize: 13,

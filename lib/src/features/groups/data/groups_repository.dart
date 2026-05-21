@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../utils/dio_client.dart';
 import '../domain/reading_group.dart';
 import '../domain/group_features.dart';
+import '../domain/group_discussion.dart';
 
 class GroupsRepository {
   final Dio _dio;
@@ -177,6 +178,31 @@ class GroupsRepository {
       throw e.response?.data['message'] ?? 'Failed to load milestones';
     }
   }
+
+  // ── Discussion Threads ───────────────────────
+
+  Future<List<GroupDiscussion>> getDiscussions(String groupId) async {
+    try {
+      final res = await _dio.get('/groups/$groupId/discussions');
+      final list = res.data as List;
+      return list.map((e) => GroupDiscussion.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to load discussions';
+    }
+  }
+
+  Future<GroupDiscussion> postDiscussion(String groupId, String content, {bool spoilerTag = false, int? pageReference}) async {
+    try {
+      final res = await _dio.post('/groups/$groupId/discussions', data: {
+        'content': content,
+        'spoilerTag': spoilerTag,
+        if (pageReference != null) 'pageReference': pageReference,
+      });
+      return GroupDiscussion.fromJson(res.data);
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to post discussion';
+    }
+  }
 }
 
 final groupsRepositoryProvider = Provider<GroupsRepository>((ref) {
@@ -222,3 +248,8 @@ final groupProposalsProvider = FutureProvider.autoDispose.family<List<BookPropos
 final groupMilestonesProvider = FutureProvider.autoDispose.family<List<ReadingMilestone>, String>((ref, id) {
   return ref.watch(groupsRepositoryProvider).getMilestones(id);
 });
+
+final groupDiscussionsProvider = FutureProvider.autoDispose.family<List<GroupDiscussion>, String>((ref, id) {
+  return ref.watch(groupsRepositoryProvider).getDiscussions(id);
+});
+

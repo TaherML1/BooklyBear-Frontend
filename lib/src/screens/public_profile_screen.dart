@@ -78,10 +78,10 @@ class _PublicProfileScreenState extends ConsumerState<PublicProfileScreen> {
                 child: CircleAvatar(
                   radius: 44,
                   backgroundColor: AppTheme.primaryFixed,
-                  backgroundImage: user.avatarUrl != null
+                  backgroundImage: (user.avatarUrl?.isNotEmpty == true)
                       ? CachedNetworkImageProvider(user.avatarUrl!)
                       : null,
-                  child: user.avatarUrl == null
+                  child: (user.avatarUrl?.isNotEmpty != true)
                       ? Text(
                           user.displayName.isNotEmpty
                               ? user.displayName[0].toUpperCase()

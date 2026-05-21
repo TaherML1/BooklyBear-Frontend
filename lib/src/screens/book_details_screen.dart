@@ -198,13 +198,16 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                 padding: const EdgeInsets.all(32.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: CachedNetworkImage(
+                  child: book.coverImageUrl.isNotEmpty ? CachedNetworkImage(
                     imageUrl: book.coverImageUrl,
-                    fit: BoxFit.contain,
-                    placeholder: (_, __) =>
-                        const Center(child: CircularProgressIndicator()),
-                    errorWidget: (_, __, ___) =>
-                        const Icon(Icons.book, size: 100, color: AppTheme.onSurfaceVariant),
+                    width: 140,
+                    height: 210,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(color: AppTheme.surfaceContainerHighest),
+                    errorWidget: (context, url, error) => const Icon(Icons.book, size: 50, color: AppTheme.outlineVariant),
+                  ) : Container(
+                    width: 140, height: 210, color: AppTheme.surfaceContainerHighest,
+                    child: const Icon(Icons.book, size: 50, color: AppTheme.outlineVariant),
                   ),
                 ),
               ),
