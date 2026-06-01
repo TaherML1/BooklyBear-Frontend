@@ -8,6 +8,7 @@ import '../features/library/data/library_repository.dart';
 import '../features/library/domain/user_book.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/books/presentation/book_reviews_section.dart';
+import '../features/books/data/review_repository.dart';
 import '../features/gamification/data/gamification_repository.dart';
 import '../features/gamification/presentation/quiz_taking_screen.dart';
 import '../theme/app_theme.dart';
@@ -64,13 +65,18 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
   bool _isUpdatingProgress = false;
   bool _isGeneratingQuiz = false;
 
-  // Local slider value (updated as user drags)
-  late double _sliderPage;
+  late TextEditingController _pageController;
 
   @override
   void initState() {
     super.initState();
-    _sliderPage = 0;
+    _pageController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _addToLibrary(BuildContext ctx) async {
@@ -80,6 +86,7 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
           .read(libraryRepositoryProvider)
           .addBookToLibrary(widget.book.id);
       ref.invalidate(libraryProvider);
+      ref.invalidate(readingHistoryProvider);
       ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
@@ -90,65 +97,161 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
       }
     } catch (e) {
       if (ctx.mounted) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(content: Text('$e')),
-        );
+        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('$e')));
       }
     } finally {
       if (mounted) setState(() => _isAddingToLibrary = false);
     }
   }
 
-  Future<void> _updateProgress(BuildContext ctx, UserBook userBook) async {
+  Future<void> _updateStatus(
+    BuildContext ctx,
+    UserBook userBook,
+    String newStatus,
+  ) async {
     setState(() => _isUpdatingProgress = true);
     try {
-      final page = _sliderPage.toInt();
-      final isFinished = page >= widget.book.pageCount;
-      final newStatus = isFinished
-          ? readingStatusToString(ReadingStatus.read)
-          : readingStatusToString(ReadingStatus.reading);
-
       await ref
           .read(libraryRepositoryProvider)
-          .updateLibraryEntry(
-            userBookId: userBook.id,
-            currentPage: page,
-            status: newStatus,
-          );
+          .updateLibraryEntry(userBookId: userBook.id, status: newStatus);
       ref.invalidate(libraryProvider);
+      ref.invalidate(readingHistoryProvider);
       ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
 
       if (ctx.mounted) {
-        if (isFinished) {
-          // Show star rating bottom sheet!
+        if (newStatus == readingStatusToString(ReadingStatus.read)) {
           await _showRatingModal(ctx, userBook.id);
         } else {
-          ScaffoldMessenger.of(ctx).showSnackBar(
-            SnackBar(content: Text('Progress updated to page $page!')),
-          );
+          ScaffoldMessenger.of(
+            ctx,
+          ).showSnackBar(SnackBar(content: Text('Status updated!')));
         }
       }
     } catch (e) {
       if (ctx.mounted) {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          SnackBar(content: Text('$e')),
-        );
+        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('$e')));
       }
     } finally {
       if (mounted) setState(() => _isUpdatingProgress = false);
     }
   }
 
+  Future<void> _toggleFavorite(BuildContext ctx, UserBook? userBook) async {
+    try {
+      if (userBook == null) {
+        // Automatically add to library as Favorite if not there
+        final newBook = await ref
+            .read(libraryRepositoryProvider)
+            .addBookToLibrary(widget.book.id);
+        await ref
+            .read(libraryRepositoryProvider)
+            .updateLibraryEntry(userBookId: newBook.id, isFavorite: true);
+        if (ctx.mounted) {
+          ScaffoldMessenger.of(
+            ctx,
+          ).showSnackBar(const SnackBar(content: Text('Added to Favorites!')));
+        }
+      } else {
+        await ref
+            .read(libraryRepositoryProvider)
+            .updateLibraryEntry(
+              userBookId: userBook.id,
+              isFavorite: !userBook.isFavorite,
+            );
+      }
+      ref.invalidate(libraryProvider);
+      ref.invalidate(readingHistoryProvider);
+      ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
+    } catch (e) {
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
+  void _showUpdateProgressDialog(BuildContext context, UserBook userBook) {
+    _pageController.text = userBook.currentPage.toString();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log Progress'),
+        content: TextField(
+          controller: _pageController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: 'Current Page (out of ${widget.book.pageCount})',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              final page =
+                  int.tryParse(_pageController.text) ?? userBook.currentPage;
+              Navigator.pop(ctx);
+              setState(() => _isUpdatingProgress = true);
+              try {
+                final isFinished = page >= widget.book.pageCount;
+                final newStatus = isFinished
+                    ? readingStatusToString(ReadingStatus.read)
+                    : readingStatusToString(ReadingStatus.reading);
+
+                await ref
+                    .read(libraryRepositoryProvider)
+                    .updateLibraryEntry(
+                      userBookId: userBook.id,
+                      currentPage: page,
+                      status: newStatus,
+                    );
+                ref.invalidate(libraryProvider);
+      ref.invalidate(readingHistoryProvider);
+                ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
+
+                if (mounted) {
+                  if (isFinished) {
+                    await _showRatingModal(context, userBook.id);
+                  } else {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Progress logged!')));
+                  }
+                }
+              } catch (e) {
+                if (mounted)
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('$e')));
+              } finally {
+                if (mounted) setState(() => _isUpdatingProgress = false);
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _takeBookQuiz() async {
     setState(() => _isGeneratingQuiz = true);
     try {
-      final quiz = await ref.read(gamificationRepositoryProvider).getBookQuiz(widget.book.id);
+      final quiz = await ref
+          .read(gamificationRepositoryProvider)
+          .getBookQuiz(widget.book.id);
       if (mounted) {
-        Navigator.push(context, MaterialPageRoute(builder: (_) => QuizTakingScreen(quiz: quiz)));
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => QuizTakingScreen(quiz: quiz)),
+        );
       }
-    } catch(e) {
+    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to generate quiz: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to generate quiz: $e')));
       }
     } finally {
       if (mounted) setState(() => _isGeneratingQuiz = false);
@@ -164,12 +267,16 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
       builder: (_) => _StarRatingSheet(
         bookTitle: widget.book.title,
         onRate: (rating) async {
-          await ref.read(libraryRepositoryProvider).updateLibraryEntry(
-            userBookId: userBookId,
-            rating: rating,
-          );
+          await ref
+              .read(libraryRepositoryProvider)
+              .updateLibraryEntry(userBookId: userBookId, rating: rating);
+          await ref
+              .read(reviewRepositoryProvider)
+              .upsertReview(isbn: widget.book.isbn, rating: rating);
           ref.invalidate(libraryProvider);
+      ref.invalidate(readingHistoryProvider);
           ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
+          ref.invalidate(bookReviewsProvider(widget.book.isbn));
           if (ctx.mounted) Navigator.of(ctx).pop();
         },
       ),
@@ -198,17 +305,31 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                 padding: const EdgeInsets.all(32.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: book.coverImageUrl.isNotEmpty ? CachedNetworkImage(
-                    imageUrl: book.coverImageUrl,
-                    width: 140,
-                    height: 210,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(color: AppTheme.surfaceContainerHighest),
-                    errorWidget: (context, url, error) => const Icon(Icons.book, size: 50, color: AppTheme.outlineVariant),
-                  ) : Container(
-                    width: 140, height: 210, color: AppTheme.surfaceContainerHighest,
-                    child: const Icon(Icons.book, size: 50, color: AppTheme.outlineVariant),
-                  ),
+                  child: book.coverImageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: book.coverImageUrl,
+                          width: 140,
+                          height: 210,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: AppTheme.surfaceContainerHighest,
+                          ),
+                          errorWidget: (context, url, error) => const Icon(
+                            Icons.book,
+                            size: 50,
+                            color: AppTheme.outlineVariant,
+                          ),
+                        )
+                      : Container(
+                          width: 140,
+                          height: 210,
+                          color: AppTheme.surfaceContainerHighest,
+                          child: const Icon(
+                            Icons.book,
+                            size: 50,
+                            color: AppTheme.outlineVariant,
+                          ),
+                        ),
                 ),
               ),
             ),
@@ -222,7 +343,10 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                 // Category — pill badge
                 if (book.categories.isNotEmpty) ...[
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryFixed,
                       borderRadius: BorderRadius.circular(100),
@@ -241,10 +365,7 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                 ],
 
                 // Title — display serif
-                Text(
-                  book.title,
-                  style: textTheme.headlineLarge,
-                ),
+                Text(book.title, style: textTheme.headlineLarge),
                 const SizedBox(height: 8),
 
                 // Author
@@ -260,10 +381,20 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                 Row(
                   children: [
                     if (book.pageCount > 0) ...[
-                      const Icon(Icons.menu_book, size: 16, color: AppTheme.onSurfaceVariant),
+                      const Icon(
+                        Icons.menu_book,
+                        size: 16,
+                        color: AppTheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
-                      Text('${book.pageCount} pages', style: textTheme.labelSmall),
-                      Text(' · ', style: TextStyle(color: AppTheme.outlineVariant)),
+                      Text(
+                        '${book.pageCount} pages',
+                        style: textTheme.labelSmall,
+                      ),
+                      Text(
+                        ' · ',
+                        style: TextStyle(color: AppTheme.outlineVariant),
+                      ),
                     ],
                     Expanded(
                       child: Text(
@@ -282,16 +413,19 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                     children: [
                       ...List.generate(5, (i) {
                         final full = i < book.averageRating!.floor();
-                        final half = !full &&
+                        final half =
+                            !full &&
                             i < book.averageRating! &&
                             (book.averageRating! - i) >= 0.5;
                         return Icon(
                           full
                               ? Icons.star_rounded
                               : half
-                                  ? Icons.star_half_rounded
-                                  : Icons.star_outline_rounded,
-                          color: const Color(0xFFD4A84B), // warm gold, editorial
+                              ? Icons.star_half_rounded
+                              : Icons.star_outline_rounded,
+                          color: const Color(
+                            0xFFD4A84B,
+                          ), // warm gold, editorial
                           size: 18,
                         );
                       }),
@@ -317,71 +451,185 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                   error: (_, __) => const SizedBox.shrink(),
                   data: (userBook) {
                     if (userBook == null) {
-                      // Book is NOT in library — show Add button
-                      return SizedBox(
-                        width: double.infinity,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: AppTheme.primaryGradient,
-                            borderRadius: BorderRadius.circular(32),
-                            boxShadow: AppTheme.ambientShadow,
+                      // Book is NOT in library — show Add button and actions
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: AppTheme.primaryGradient,
+                                    borderRadius: BorderRadius.circular(32),
+                                    boxShadow: AppTheme.ambientShadow,
+                                  ),
+                                  child: FilledButton.icon(
+                                    onPressed: _isAddingToLibrary
+                                        ? null
+                                        : () => _addToLibrary(context),
+                                    icon: _isAddingToLibrary
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: AppTheme.onPrimary,
+                                            ),
+                                          )
+                                        : const Icon(
+                                            Icons.bookmark_add_outlined,
+                                          ),
+                                    label: const Text('Want to Read'),
+                                    style: FilledButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 16,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton.filledTonal(
+                                onPressed: () => _toggleFavorite(context, null),
+                                icon: const Icon(Icons.favorite_border),
+                              ),
+                            ],
                           ),
-                          child: FilledButton.icon(
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
                             onPressed: _isAddingToLibrary
                                 ? null
-                                : () => _addToLibrary(context),
-                            icon: _isAddingToLibrary
-                                ? const SizedBox(
-                                    width: 18, height: 18,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: AppTheme.onPrimary,
-                                    ),
-                                  )
-                                : const Icon(Icons.add),
-                            label: const Text('Add to Library'),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: Colors.transparent,
+                                : () async {
+                                    setState(() => _isAddingToLibrary = true);
+                                    try {
+                                      final newBook = await ref
+                                          .read(libraryRepositoryProvider)
+                                          .addBookToLibrary(widget.book.id);
+                                      await ref
+                                          .read(libraryRepositoryProvider)
+                                          .updateLibraryEntry(
+                                            userBookId: newBook.id,
+                                            status: readingStatusToString(
+                                              ReadingStatus.read,
+                                            ),
+                                          );
+                                      ref.invalidate(libraryProvider);
+      ref.invalidate(readingHistoryProvider);
+                                      ref.invalidate(
+                                        userBookForIsbnProvider(
+                                          widget.book.isbn,
+                                        ),
+                                      );
+                                    } finally {
+                                      if (mounted)
+                                        setState(
+                                          () => _isAddingToLibrary = false,
+                                        );
+                                    }
+                                  },
+                            icon: const Icon(Icons.check_circle_outline),
+                            label: const Text('I have already read this book'),
+                            style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                           ),
-                        ),
+                        ],
                       );
                     }
 
-                    // Book IS in library — initialize slider with current page
-                    if (_sliderPage == 0 && userBook.currentPage > 0) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (mounted) {
-                          setState(
-                            () => _sliderPage = userBook.currentPage.toDouble(),
-                          );
-                        }
-                      });
-                    }
-
+                    // Book IS in library
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Status badge — pill style
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: _statusColor(userBook.status).withAlpha(25),
-                            borderRadius: BorderRadius.circular(100),
-                          ),
-                          child: Text(
-                            _statusLabel(userBook.status),
-                            style: GoogleFonts.inter(
-                              color: _statusColor(userBook.status),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Status badge — pill style
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _statusColor(
+                                  userBook.status,
+                                ).withAlpha(25),
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Text(
+                                _statusLabel(userBook.status),
+                                style: GoogleFonts.inter(
+                                  color: _statusColor(userBook.status),
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ),
-                          ),
+                            IconButton(
+                              onPressed: () =>
+                                  _toggleFavorite(context, userBook),
+                              icon: Icon(
+                                userBook.isFavorite
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                                color: userBook.isFavorite
+                                    ? AppTheme.error
+                                    : AppTheme.outlineVariant,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 24),
 
-                        // Page progress slider
-                        if (userBook.status != ReadingStatus.read) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SegmentedButton<ReadingStatus>(
+                                segments: const [
+                                  ButtonSegment(
+                                    value: ReadingStatus.toRead,
+                                    icon: Icon(Icons.bookmark_border),
+                                    label: Text('Want to Read'),
+                                  ),
+                                  ButtonSegment(
+                                    value: ReadingStatus.reading,
+                                    icon: Icon(Icons.menu_book),
+                                    label: Text('Reading'),
+                                  ),
+                                  ButtonSegment(
+                                    value: ReadingStatus.read,
+                                    icon: Icon(Icons.check),
+                                    label: Text('Read'),
+                                  ),
+                                ],
+                                selected: {userBook.status},
+                                onSelectionChanged:
+                                    (Set<ReadingStatus> newSelection) {
+                                      _updateStatus(
+                                        context,
+                                        userBook,
+                                        readingStatusToString(
+                                          newSelection.first,
+                                        ),
+                                      );
+                                    },
+                                style: SegmentedButton.styleFrom(
+                                  selectedBackgroundColor:
+                                      AppTheme.primaryFixed,
+                                  selectedForegroundColor:
+                                      AppTheme.onPrimaryFixed,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Page progress
+                        if (userBook.status == ReadingStatus.reading ||
+                            userBook.status == ReadingStatus.toRead) ...[
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -394,7 +642,7 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                                 ),
                               ),
                               Text(
-                                '${_sliderPage.toInt()} / ${book.pageCount}',
+                                '${userBook.currentPage} / ${book.pageCount}',
                                 style: GoogleFonts.inter(
                                   color: AppTheme.primary,
                                   fontWeight: FontWeight.w600,
@@ -403,42 +651,17 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                               ),
                             ],
                           ),
-                          Slider(
-                            value: _sliderPage.clamp(0, book.pageCount.toDouble()),
-                            min: 0,
-                            max: book.pageCount.toDouble(),
-                            divisions: book.pageCount > 0 ? book.pageCount : 1,
-                            label: 'Page ${_sliderPage.toInt()}',
-                            onChanged: (v) => setState(() => _sliderPage = v),
-                          ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           SizedBox(
                             width: double.infinity,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: AppTheme.primaryGradient,
-                                borderRadius: BorderRadius.circular(32),
-                              ),
-                              child: FilledButton.icon(
-                                onPressed: _isUpdatingProgress
-                                    ? null
-                                    : () => _updateProgress(context, userBook),
-                                icon: _isUpdatingProgress
-                                    ? const SizedBox(
-                                        width: 18, height: 18,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2, color: AppTheme.onPrimary,
-                                        ),
-                                      )
-                                    : const Icon(Icons.save_alt),
-                                label: Text(
-                                  _sliderPage.toInt() >= book.pageCount
-                                      ? '🎉 Mark as Finished'
-                                      : 'Save Progress',
-                                ),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                            child: FilledButton.tonalIcon(
+                              onPressed: () =>
+                                  _showUpdateProgressDialog(context, userBook),
+                              icon: const Icon(Icons.edit_note),
+                              label: const Text('Log Progress'),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
                                 ),
                               ),
                             ),
@@ -454,7 +677,11 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.check_circle_rounded, color: AppTheme.primary, size: 20),
+                                const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppTheme.primary,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
@@ -478,14 +705,25 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                                 borderRadius: BorderRadius.circular(32),
                               ),
                               child: FilledButton.icon(
-                                onPressed: _isGeneratingQuiz ? null : _takeBookQuiz,
+                                onPressed: _isGeneratingQuiz
+                                    ? null
+                                    : _takeBookQuiz,
                                 icon: _isGeneratingQuiz
-                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
-                                  : const Icon(Icons.school_outlined),
+                                    ? const SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppTheme.onPrimary,
+                                        ),
+                                      )
+                                    : const Icon(Icons.school_outlined),
                                 label: const Text('Take Book Quiz'),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: Colors.transparent,
-                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
                                 ),
                               ),
                             ),
@@ -526,10 +764,10 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
   };
 
   String _statusLabel(ReadingStatus s) => switch (s) {
-    ReadingStatus.reading => '📖 Currently Reading',
-    ReadingStatus.read => '✅ Finished',
-    ReadingStatus.toRead => '🔖 In Your Library',
-    ReadingStatus.dnf => '😅 Did Not Finish',
+    ReadingStatus.reading => 'Currently Reading',
+    ReadingStatus.read => 'Finished',
+    ReadingStatus.toRead => 'In Your Library',
+    ReadingStatus.dnf => 'Did Not Finish',
   };
 
   String _formatCount(int n) {
@@ -567,7 +805,8 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
         children: [
           // Drag handle
           Container(
-            width: 40, height: 4,
+            width: 40,
+            height: 4,
             decoration: BoxDecoration(
               color: AppTheme.outlineVariant,
               borderRadius: BorderRadius.circular(2),
@@ -576,7 +815,7 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
           const SizedBox(height: 28),
 
           // Trophy
-          const Text('🎉', style: TextStyle(fontSize: 48)),
+          const Icon(Icons.emoji_events, size: 48, color: Color(0xFFD4A84B)),
           const SizedBox(height: 14),
           Text(
             'You finished the book!',
@@ -620,7 +859,9 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
                   child: Icon(
                     filled ? Icons.star_rounded : Icons.star_outline_rounded,
                     size: 48,
-                    color: filled ? const Color(0xFFD4A84B) : AppTheme.outlineVariant,
+                    color: filled
+                        ? const Color(0xFFD4A84B)
+                        : AppTheme.outlineVariant,
                   ),
                 ),
               );
@@ -628,9 +869,20 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
           ),
           const SizedBox(height: 10),
           Text(
-            _selectedRating == 0 ? 'Tap a star to rate'
-            : ['', '😕 Poor', '😐 Fair', '🙂 Good', '😊 Great', '🤩 Amazing!'][_selectedRating],
-            style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant, fontSize: 13),
+            _selectedRating == 0
+                ? 'Tap a star to rate'
+                : [
+                    '',
+                    '😕 Poor',
+                    '😐 Fair',
+                    '🙂 Good',
+                    '😊 Great',
+                    '🤩 Amazing!',
+                  ][_selectedRating],
+            style: GoogleFonts.inter(
+              color: AppTheme.onSurfaceVariant,
+              fontSize: 13,
+            ),
           ),
           const SizedBox(height: 28),
 
@@ -643,26 +895,43 @@ class _StarRatingSheetState extends State<_StarRatingSheet> {
                 borderRadius: BorderRadius.circular(32),
               ),
               child: FilledButton(
-                onPressed: (_selectedRating == 0 || _saving) ? null : () async {
-                  setState(() => _saving = true);
-                  await widget.onRate(_selectedRating);
-                  if (mounted) setState(() => _saving = false);
-                },
+                onPressed: (_selectedRating == 0 || _saving)
+                    ? null
+                    : () async {
+                        setState(() => _saving = true);
+                        await widget.onRate(_selectedRating);
+                        if (mounted) setState(() => _saving = false);
+                      },
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   minimumSize: const Size(double.infinity, 52),
                 ),
                 child: _saving
-                  ? const SizedBox(width: 22, height: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.onPrimary))
-                  : Text('Submit Rating', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.onPrimary,
+                        ),
+                      )
+                    : Text(
+                        'Submit Rating',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
               ),
             ),
           ),
           const SizedBox(height: 10),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text('Skip', style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant)),
+            child: Text(
+              'Skip',
+              style: GoogleFonts.inter(color: AppTheme.onSurfaceVariant),
+            ),
           ),
         ],
       ),

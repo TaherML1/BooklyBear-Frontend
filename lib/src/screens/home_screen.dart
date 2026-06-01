@@ -41,12 +41,8 @@ class HomeScreen extends ConsumerWidget {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.person_outline, size: 22),
-                  onPressed: () => context.push('/profile'),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.logout, size: 20),
-                  onPressed: () => ref.read(authControllerProvider.notifier).logout(),
+                  icon: const Icon(Icons.calendar_month_outlined, size: 22),
+                  onPressed: () => context.push('/calendar'),
                 ),
               ],
             ),
@@ -70,6 +66,10 @@ class HomeScreen extends ConsumerWidget {
 
                   // Curated For You (AI Recommendations)
                   const BooksForYouSection(),
+                  const SizedBox(height: 48),
+
+                  // Reading Journey Calendar
+                  _CalendarCta(),
                   const SizedBox(height: 48),
 
                   // Discover — Tinder-style Book Swipe CTA
@@ -640,6 +640,88 @@ class _DiscoverCta extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Reading Journey Calendar CTA ──────────────────────────────────────────────
+class _CalendarCta extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/calendar'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: AppTheme.ambientShadow,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Your Reading Journey',
+                    style: GoogleFonts.notoSerif(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Track your daily reading habits and view your gamified activity calendar.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppTheme.onSurfaceVariant,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'View Calendar',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.onPrimary,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(Icons.calendar_month, color: AppTheme.onPrimary, size: 16),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                color: AppTheme.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Center(
+                child: Icon(Icons.calendar_month_outlined, color: AppTheme.primary, size: 32),
+              ),
             ),
           ],
         ),

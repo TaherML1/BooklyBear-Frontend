@@ -37,12 +37,14 @@ class LibraryRepository {
     String? status,
     int? currentPage,
     int? rating,
+    bool? isFavorite,
   }) async {
     try {
       final body = <String, dynamic>{};
       if (status != null) body['status'] = status;
       if (currentPage != null) body['currentPage'] = currentPage;
       if (rating != null) body['rating'] = rating;
+      if (isFavorite != null) body['isFavorite'] = isFavorite;
 
       final response = await _dio.put('/library/$userBookId', data: body);
       return UserBook.fromJson(response.data as Map<String, dynamic>);
@@ -53,21 +55,31 @@ class LibraryRepository {
 
   /// POST /api/library/:userBookId/sessions — log a reading session
   /// This triggers XP + streak increment on the backend.
-  Future<void> logReadingSession({
+  Future<Map<String, dynamic>> logReadingSession({
     required String userBookId,
     required int pagesRead,
     required int minutesSpent,
   }) async {
     try {
-      await _dio.post(
+      final response = await _dio.post(
         '/library/$userBookId/sessions',
         data: {
           'pagesRead': pagesRead,
           'minutesSpent': minutesSpent,
         },
       );
+      return response.data as Map<String, dynamic>;
     } on DioException catch (e) {
       throw e.response?.data['message'] ?? 'Failed to log reading session';
+    }
+  }
+  /// GET /api/library/sessions/history
+  Future<List<dynamic>> getRawReadingHistory() async {
+    try {
+      final response = await _dio.get('/library/sessions/history');
+      return response.data as List<dynamic>;
+    } on DioException catch (e) {
+      throw e.response?.data['message'] ?? 'Failed to load reading history';
     }
   }
 }

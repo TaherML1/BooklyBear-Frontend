@@ -28,7 +28,7 @@ class LibraryScreen extends ConsumerWidget {
     final isEditing = ref.watch(isEditingOrderProvider);
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -74,6 +74,13 @@ class LibraryScreen extends ConsumerWidget {
                 ),
                 text: 'Finished',
               ),
+              Tab(
+                icon: Icon(
+                  Icons.favorite_border,
+                  color: isEditing ? AppTheme.outlineVariant : null,
+                ),
+                text: 'Favorites',
+              ),
             ],
           ),
         ),
@@ -97,6 +104,12 @@ class LibraryScreen extends ConsumerWidget {
               statusKey: 'finished',
               emptyMessage:
                   "No finished books yet.\nKeep reading, you'll get there! 🎉",
+            ),
+            _LibraryTab(
+              statusProvider: favoriteBooksProvider,
+              statusKey: 'favorites',
+              emptyMessage:
+                  "No favorite books yet.\nMark books you love to see them here!",
             ),
           ],
         ),

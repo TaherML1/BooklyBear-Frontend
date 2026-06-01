@@ -84,7 +84,8 @@ class ProfileScreen extends ConsumerWidget {
                               CircleAvatar(
                                 radius: 40,
                                 backgroundColor: AppTheme.primaryContainer,
-                                backgroundImage: (user.avatarUrl?.isNotEmpty == true)
+                                backgroundImage:
+                                    (user.avatarUrl?.isNotEmpty == true)
                                     ? CachedNetworkImageProvider(
                                         user.avatarUrl!,
                                       )
@@ -145,6 +146,13 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   actions: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.calendar_month_outlined,
+                        color: AppTheme.primary,
+                      ),
+                      onPressed: () => context.push('/calendar'),
+                    ),
                     IconButton(
                       icon: const Icon(
                         Icons.edit_outlined,
@@ -589,8 +597,9 @@ class ProfileScreen extends ConsumerWidget {
                               ),
                               error: (err, _) => const SizedBox.shrink(),
                               data: (achievements) {
-                                if (achievements.isEmpty)
+                                if (achievements.isEmpty) {
                                   return const SizedBox.shrink();
+                                }
                                 return _SectionCard(
                                   child: Column(
                                     crossAxisAlignment:
@@ -665,8 +674,9 @@ class ProfileScreen extends ConsumerWidget {
                               ),
                               error: (err, _) => const SizedBox.shrink(),
                               data: (badges) {
-                                if (badges.isEmpty)
+                                if (badges.isEmpty) {
                                   return const SizedBox.shrink();
+                                }
                                 return _SectionCard(
                                   child: Column(
                                     crossAxisAlignment:

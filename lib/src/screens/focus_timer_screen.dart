@@ -45,6 +45,7 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
   // ── Page input (shown on the completion screen) ─────────────────────────
   int _pagesRead = 0;
   bool _loggingSession = false;
+  int? _xpEarned;
 
   // ── Arc animation ────────────────────────────────────────────────────────
   late AnimationController _arcController;
@@ -112,17 +113,22 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
   Future<void> _logAndClose() async {
     setState(() => _loggingSession = true);
     try {
-      await ref.read(libraryRepositoryProvider).logReadingSession(
+      final response = await ref.read(libraryRepositoryProvider).logReadingSession(
             userBookId: widget.userBookId,
             pagesRead: _pagesRead,
             minutesSpent: _selectedMinutes,
           );
+      
+      final xp = response['xpEarned'] as int? ?? 0;
+      setState(() => _xpEarned = xp);
       // Invalidate gamification so XP + streak refresh automatically
       ref.invalidate(gamificationStatusProvider);
       ref.invalidate(libraryProvider);
 
       if (mounted) {
-        Navigator.of(context).pop(true); // true = session was logged
+        // Wait a brief moment so the user sees the XP earned before popping
+        await Future.delayed(const Duration(seconds: 2));
+        if (mounted) Navigator.of(context).pop(true); // true = session was logged
       }
     } catch (e) {
       if (mounted) {
@@ -213,8 +219,8 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
         if (!_running)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Wrap(
+              alignment: WrapAlignment.center,
               children: _durations.map((d) {
                 final selected = d.minutes == _selectedMinutes;
                 return Padding(
@@ -381,7 +387,9 @@ class _FocusTimerScreenState extends ConsumerState<FocusTimerScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            'You focused for $_selectedMinutes minutes of deep reading. +45 XP earned.',
+            _xpEarned != null 
+              ? 'You focused for $_selectedMinutes minutes of deep reading. +$_xpEarned XP earned.'
+              : 'You focused for $_selectedMinutes minutes of deep reading. Ready to log your session?',
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
               color: AppTheme.primaryFixedDim.withAlpha(140),

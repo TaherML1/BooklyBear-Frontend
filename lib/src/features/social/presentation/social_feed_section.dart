@@ -8,7 +8,6 @@ import '../data/post_repository.dart';
 import '../domain/post.dart';
 import '../../books/domain/book.dart';
 import '../../../theme/app_theme.dart';
-import 'create_post_sheet.dart';
 import 'post_comments_sheet.dart';
 
 class SocialFeedSection extends ConsumerWidget {
@@ -30,14 +29,16 @@ class SocialFeedSection extends ConsumerWidget {
               style: Theme.of(context).textTheme.headlineLarge,
             ),
             const SizedBox(height: 16),
-            
+
             // ── Share a thought button ──
-            _CreatePostPrompt(onTap: () {
-              context.push('/create-post');
-            }),
+            _CreatePostPrompt(
+              onTap: () {
+                context.push('/create-post');
+              },
+            ),
             const SizedBox(height: 16),
 
-            if (posts.isEmpty) 
+            if (posts.isEmpty)
               const _EmptyFeedPlaceholder()
             else
               ...posts.map((post) => _PostCard(post: post)),
@@ -69,10 +70,7 @@ class _CreatePostPrompt extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               'Share a thought about what you are reading...',
-              style: GoogleFonts.inter(
-                fontSize: 14,
-                color: AppTheme.outline,
-              ),
+              style: GoogleFonts.inter(fontSize: 14, color: AppTheme.outline),
             ),
           ],
         ),
@@ -103,13 +101,13 @@ class _PostCardState extends ConsumerState<_PostCard>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _likeScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(
-      parent: _likeAnimController,
-      curve: Curves.easeInOut,
-    ));
+    _likeScale =
+        TweenSequence<double>([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 50),
+          TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 50),
+        ]).animate(
+          CurvedAnimation(parent: _likeAnimController, curve: Curves.easeInOut),
+        );
   }
 
   @override
@@ -151,13 +149,13 @@ class _PostCardState extends ConsumerState<_PostCard>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _post.isDiscovery 
-            ? AppTheme.surfaceContainerLow 
+        color: _post.isDiscovery
+            ? AppTheme.surfaceContainerLow
             : AppTheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(16),
         boxShadow: AppTheme.ambientShadow,
@@ -171,12 +169,12 @@ class _PostCardState extends ConsumerState<_PostCard>
                 radius: 20,
                 backgroundColor: AppTheme.primaryFixed,
                 backgroundImage: (_post.user.avatarUrl?.isNotEmpty == true)
-                    ? CachedNetworkImageProvider(_post.user.avatarUrl!) 
+                    ? CachedNetworkImageProvider(_post.user.avatarUrl!)
                     : null,
                 child: (_post.user.avatarUrl?.isNotEmpty != true)
                     ? Text(
-                        _post.user.displayName.isNotEmpty 
-                            ? _post.user.displayName[0].toUpperCase() 
+                        _post.user.displayName.isNotEmpty
+                            ? _post.user.displayName[0].toUpperCase()
                             : '?',
                         style: GoogleFonts.notoSerif(
                           color: AppTheme.onPrimaryFixed,
@@ -204,7 +202,11 @@ class _PostCardState extends ConsumerState<_PostCard>
                         ),
                         if (_post.isDiscovery) ...[
                           const SizedBox(width: 4),
-                          const Icon(Icons.auto_awesome, size: 14, color: AppTheme.primary),
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 14,
+                            color: AppTheme.primary,
+                          ),
                         ],
                       ],
                     ),
@@ -220,10 +222,7 @@ class _PostCardState extends ConsumerState<_PostCard>
           const SizedBox(height: 14),
           Text(
             _post.content,
-            style: GoogleFonts.inter(
-              color: AppTheme.onSurface,
-              height: 1.5,
-            ),
+            style: GoogleFonts.inter(color: AppTheme.onSurface, height: 1.5),
           ),
           if (_post.book != null) ...[
             const SizedBox(height: 12),
@@ -234,21 +233,28 @@ class _PostCardState extends ConsumerState<_PostCard>
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _post.tags.map((tag) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '#$tag',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppTheme.onPrimaryContainer,
-                  ),
-                ),
-              )).toList(),
+              children: _post.tags
+                  .map(
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
           const SizedBox(height: 14),
@@ -326,28 +332,38 @@ class _BookTag extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
-              child: book.coverImageUrl.isNotEmpty ? CachedNetworkImage(
-                imageUrl: book.coverImageUrl,
-                width: 40,
-                height: 60,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  width: 40,
-                  height: 60,
-                  color: AppTheme.surfaceContainerHighest,
-                ),
-                errorWidget: (context, url, error) => Container(
-                  width: 40,
-                  height: 60,
-                  color: AppTheme.surfaceContainerHighest,
-                  child: const Icon(Icons.book, size: 20, color: AppTheme.onSurfaceVariant),
-                ),
-              ) : Container(
-                  width: 40,
-                  height: 60,
-                  color: AppTheme.surfaceContainerHighest,
-                  child: const Icon(Icons.book, size: 20, color: AppTheme.onSurfaceVariant),
-              ),
+              child: book.coverImageUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: book.coverImageUrl,
+                      width: 40,
+                      height: 60,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 40,
+                        height: 60,
+                        color: AppTheme.surfaceContainerHighest,
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: 40,
+                        height: 60,
+                        color: AppTheme.surfaceContainerHighest,
+                        child: const Icon(
+                          Icons.book,
+                          size: 20,
+                          color: AppTheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      width: 40,
+                      height: 60,
+                      color: AppTheme.surfaceContainerHighest,
+                      child: const Icon(
+                        Icons.book,
+                        size: 20,
+                        color: AppTheme.onSurfaceVariant,
+                      ),
+                    ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -389,7 +405,11 @@ class _EmptyFeedPlaceholder extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          const Icon(Icons.forum_outlined, size: 64, color: AppTheme.outlineVariant),
+          const Icon(
+            Icons.forum_outlined,
+            size: 64,
+            color: AppTheme.outlineVariant,
+          ),
           const SizedBox(height: 12),
           Text(
             'Your Feed is Quiet',

@@ -24,6 +24,7 @@ import '../screens/focus_timer_screen.dart';
 import '../features/onboarding/presentation/onboarding_screen.dart';
 import '../features/discovery/presentation/book_swipe_screen.dart';
 import '../features/discovery/presentation/recommendations_screen.dart';
+import '../screens/activity_calendar_screen.dart';
 
 // Key for the root navigator (the one that handles full-screen pushes)
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -139,6 +140,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             bookTitle: bookTitle,
           );
         },
+      ),
+      GoRoute(
+        path: '/calendar',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const ActivityCalendarScreen(),
       ),
 
       // --- StatefulShellRoute for BottomNavigationBar ---

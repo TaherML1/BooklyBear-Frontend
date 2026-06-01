@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'app_logger.dart';
 
 String getApiBaseUrl() {
-  // Updated to match your PC's actual IPv4 address
-  const url = 'http://192.168.1.76:3000/api';
+  final url = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000/api';
   AppLogger.info('--- [CONFIG] Using API Base URL: $url');
   return url;
 }

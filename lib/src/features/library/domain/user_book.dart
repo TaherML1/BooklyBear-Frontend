@@ -34,6 +34,7 @@ class UserBook {
   final ReadingStatus status;
   final int currentPage;
   final int? rating;
+  final bool isFavorite;
   final DateTime addedAt;
 
   UserBook({
@@ -42,6 +43,7 @@ class UserBook {
     required this.status,
     required this.currentPage,
     this.rating,
+    this.isFavorite = false,
     required this.addedAt,
   });
 
@@ -52,6 +54,7 @@ class UserBook {
       status: readingStatusFromString(json['status']?.toString() ?? ''),
       currentPage: (json['currentPage'] as num?)?.toInt() ?? 0,
       rating: (json['rating'] as num?)?.toInt(),
+      isFavorite: json['isFavorite'] == true,
       addedAt: json['addedAt'] != null
           ? DateTime.tryParse(json['addedAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
