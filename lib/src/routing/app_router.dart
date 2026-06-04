@@ -27,7 +27,7 @@ import '../features/discovery/presentation/recommendations_screen.dart';
 import '../screens/activity_calendar_screen.dart';
 
 // Key for the root navigator (the one that handles full-screen pushes)
-final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// Tri-state for onboarding: null = not yet checked, true = completed, false = needs onboarding
 final onboardingCompletedProvider = StateProvider<bool?>((ref) => null);
@@ -37,7 +37,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   final refreshListenable = _RouterRefreshListenable(ref);
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/splash',
     refreshListenable: refreshListenable,
 
@@ -108,7 +108,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/book/:isbn', // Full screen push outside the shell
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final isbn = state.pathParameters['isbn']!;
           return BookDetailsScreen(isbn: isbn);
@@ -116,22 +116,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/discover',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const BookSwipeScreen(),
       ),
       GoRoute(
         path: '/create-post',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const CreatePostScreen(),
       ),
       GoRoute(
         path: '/recommendations',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const RecommendationsScreen(),
       ),
       GoRoute(
         path: '/timer/:userBookId', // Full-screen focus timer outside the shell
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
           final userBookId = state.pathParameters['userBookId']!;
           final bookTitle = state.uri.queryParameters['title'] ?? 'Your Book';
@@ -143,7 +143,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/calendar',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ActivityCalendarScreen(),
       ),
 
@@ -189,12 +189,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'create',
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const CreateGroupScreen(),
                   ),
                   GoRoute(
                     path: ':id',
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => GroupDetailsScreen(groupId: state.pathParameters['id']!),
                   ),
                 ],
@@ -210,12 +210,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'friends',
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const FriendsListScreen(),
                   ),
                   GoRoute(
                     path: 'edit',
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) {
                       final extra = state.extra as Map<String, dynamic>?;
                       return EditProfileScreen(
@@ -226,7 +226,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: ':username',
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => PublicProfileScreen(username: state.pathParameters['username']!),
                   ),
                 ],

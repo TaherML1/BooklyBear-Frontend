@@ -1,9 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/gamification/presentation/achievement_unlock_manager.dart';
 import '../theme/app_theme.dart';
 
-class MainScaffold extends StatelessWidget {
+class MainScaffold extends ConsumerWidget {
   const MainScaffold({
     super.key,
     required this.navigationShell,
@@ -13,7 +15,10 @@ class MainScaffold extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Active achievement unlock checking globally
+    ref.watch(achievementUnlockManagerProvider);
+
     return Scaffold(
       extendBody: true,
       body: navigationShell,
