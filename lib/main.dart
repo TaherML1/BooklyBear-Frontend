@@ -4,9 +4,15 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:booklybear/src/routing/app_router.dart';
 import 'package:booklybear/src/theme/app_theme.dart';
 
+import 'package:booklybear/src/utils/dio_client.dart'; // Import for fetchDynamicApiUrl
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  
+  // Fetch the latest tunnel URL from GitHub before starting the app
+  await fetchDynamicApiUrl();
+  
   runApp(const ProviderScope(child: BooklyBearApp()));
 }
 

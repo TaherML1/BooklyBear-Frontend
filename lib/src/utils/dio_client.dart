@@ -4,10 +4,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'app_logger.dart';
 
+String apiBaseUrl = 'http://192.168.1.76:3000/api'; // Fallback
+
 String getApiBaseUrl() {
-  final url = dotenv.env['API_BASE_URL'] ?? 'http://10.0.2.2:3000/api';
-  AppLogger.info('--- [CONFIG] Using API Base URL: $url');
-  return url;
+  AppLogger.info('--- [CONFIG] Using API Base URL: $apiBaseUrl');
+  return apiBaseUrl;
+}
+
+Future<void> fetchDynamicApiUrl() async {
+  try {
+    final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 5)));
+    // Add a query param with timestamp to bypass GitHub caching
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final response = await dio.get('https://raw.githubusercontent.com/TaherML1/BooklyBear-Frontend/main/api_url.txt?t=$timestamp');
+    
+    if (response.statusCode == 200 && response.data != null) {
+      final fetchedUrl = response.data.toString().trim();
+      if (fetchedUrl.isNotEmpty) {
+        apiBaseUrl = fetchedUrl;
+        AppLogger.info('--- [CONFIG] Successfully fetched Dynamic API URL: $apiBaseUrl');
+        return;
+      }
+    }
+  } catch (e) {
+    AppLogger.info('--- [CONFIG] Failed to fetch dynamic API URL, using fallback ($apiBaseUrl). Error: $e');
+  }
 }
 
 // 1. Provider for the Storage

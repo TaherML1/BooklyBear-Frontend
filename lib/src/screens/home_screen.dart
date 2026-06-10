@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../features/auth/presentation/auth_controller.dart';
 import '../features/gamification/presentation/gamification_providers.dart';
 import '../features/library/presentation/library_providers.dart';
 import '../features/library/domain/user_book.dart';
@@ -134,7 +133,10 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // Level Badge — pill
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(100),
@@ -142,7 +144,11 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star_rounded, color: AppTheme.onPrimary, size: 16),
+                        const Icon(
+                          Icons.star_rounded,
+                          color: AppTheme.onPrimary,
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'Level ${status.level}',
@@ -158,7 +164,10 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   // Streak
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryFixed,
                       borderRadius: BorderRadius.circular(100),
@@ -166,7 +175,11 @@ class HomeScreen extends ConsumerWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.local_fire_department, color: AppTheme.onPrimaryFixed, size: 16),
+                        const Icon(
+                          Icons.local_fire_department,
+                          color: AppTheme.onPrimaryFixed,
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           '${status.streak} Days',
@@ -212,7 +225,9 @@ class HomeScreen extends ConsumerWidget {
                   value: progressPercent,
                   minHeight: 4,
                   backgroundColor: AppTheme.surfaceContainerHighest,
-                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primary),
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppTheme.primary,
+                  ),
                 ),
               ),
             ],
@@ -238,8 +253,10 @@ class HomeScreen extends ConsumerWidget {
             color: AppTheme.errorContainer,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Text('Failed to load stats: $err',
-              style: TextStyle(color: AppTheme.onErrorContainer)),
+          child: Text(
+            'Failed to load stats: $err',
+            style: TextStyle(color: AppTheme.onErrorContainer),
+          ),
         );
       },
     );
@@ -257,8 +274,8 @@ class HomeScreen extends ConsumerWidget {
           // Already done
         }
 
-        final double progress =
-            (challenge.pagesReadToday / challenge.goalPages).clamp(0.0, 1.0);
+        final double progress = (challenge.pagesReadToday / challenge.goalPages)
+            .clamp(0.0, 1.0);
 
         return Container(
           padding: const EdgeInsets.all(24),
@@ -294,7 +311,10 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryFixed,
                       borderRadius: BorderRadius.circular(100),
@@ -346,10 +366,7 @@ class HomeScreen extends ConsumerWidget {
                 const SizedBox(height: 10),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(100),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    minHeight: 4,
-                  ),
+                  child: LinearProgressIndicator(value: progress, minHeight: 4),
                 ),
               ],
             ],
@@ -505,8 +522,13 @@ class _CurrentlyReadingCard extends StatelessWidget {
                         style: FilledButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           padding: const EdgeInsets.symmetric(vertical: 10),
-                          textStyle: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                          textStyle: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
                         ),
                       ),
                     ),
@@ -534,11 +556,7 @@ class _DiscoverCta extends StatelessWidget {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF6C63FF),
-              Color(0xFF9F7AEA),
-              Color(0xFFF687B3),
-            ],
+            colors: [Color(0xFF6C63FF), Color(0xFF9F7AEA), Color(0xFFF687B3)],
           ),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
@@ -575,12 +593,13 @@ class _DiscoverCta extends StatelessWidget {
                   const SizedBox(height: 14),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(40),
                       borderRadius: BorderRadius.circular(100),
-                      border: Border.all(
-                          color: Colors.white.withAlpha(60)),
+                      border: Border.all(color: Colors.white.withAlpha(60)),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -594,8 +613,11 @@ class _DiscoverCta extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(Icons.arrow_forward_rounded,
-                            color: Colors.white, size: 16),
+                        const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ],
                     ),
                   ),
@@ -616,8 +638,7 @@ class _DiscoverCta extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withAlpha(30),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                            color: Colors.white.withAlpha(40)),
+                        border: Border.all(color: Colors.white.withAlpha(40)),
                       ),
                     ),
                   ),
@@ -630,12 +651,14 @@ class _DiscoverCta extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withAlpha(50),
                       borderRadius: BorderRadius.circular(10),
-                      border:
-                          Border.all(color: Colors.white.withAlpha(70)),
+                      border: Border.all(color: Colors.white.withAlpha(70)),
                     ),
                     child: const Center(
-                      child: Icon(Icons.swipe_rounded,
-                          color: Colors.white, size: 28),
+                      child: Icon(
+                        Icons.swipe_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
                   ),
                 ),
@@ -687,7 +710,10 @@ class _CalendarCta extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.circular(100),
@@ -704,7 +730,11 @@ class _CalendarCta extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        const Icon(Icons.calendar_month, color: AppTheme.onPrimary, size: 16),
+                        const Icon(
+                          Icons.calendar_month,
+                          color: AppTheme.onPrimary,
+                          size: 16,
+                        ),
                       ],
                     ),
                   ),
@@ -720,7 +750,11 @@ class _CalendarCta extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: const Center(
-                child: Icon(Icons.calendar_month_outlined, color: AppTheme.primary, size: 32),
+                child: Icon(
+                  Icons.calendar_month_outlined,
+                  color: AppTheme.primary,
+                  size: 32,
+                ),
               ),
             ),
           ],

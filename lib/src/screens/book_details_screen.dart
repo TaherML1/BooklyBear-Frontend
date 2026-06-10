@@ -207,7 +207,7 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                       status: newStatus,
                     );
                 ref.invalidate(libraryProvider);
-      ref.invalidate(readingHistoryProvider);
+                ref.invalidate(readingHistoryProvider);
                 ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
 
                 if (mounted) {
@@ -220,10 +220,11 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                   }
                 }
               } catch (e) {
-                if (mounted)
+                if (mounted) {
                   ScaffoldMessenger.of(
                     context,
                   ).showSnackBar(SnackBar(content: Text('$e')));
+                }
               } finally {
                 if (mounted) setState(() => _isUpdatingProgress = false);
               }
@@ -274,7 +275,7 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
               .read(reviewRepositoryProvider)
               .upsertReview(isbn: widget.book.isbn, rating: rating);
           ref.invalidate(libraryProvider);
-      ref.invalidate(readingHistoryProvider);
+          ref.invalidate(readingHistoryProvider);
           ref.invalidate(userBookForIsbnProvider(widget.book.isbn));
           ref.invalidate(bookReviewsProvider(widget.book.isbn));
           if (ctx.mounted) Navigator.of(ctx).pop();
@@ -516,17 +517,18 @@ class _BookDetailsViewState extends ConsumerState<_BookDetailsView> {
                                             ),
                                           );
                                       ref.invalidate(libraryProvider);
-      ref.invalidate(readingHistoryProvider);
+                                      ref.invalidate(readingHistoryProvider);
                                       ref.invalidate(
                                         userBookForIsbnProvider(
                                           widget.book.isbn,
                                         ),
                                       );
                                     } finally {
-                                      if (mounted)
+                                      if (mounted) {
                                         setState(
                                           () => _isAddingToLibrary = false,
                                         );
+                                      }
                                     }
                                   },
                             icon: const Icon(Icons.check_circle_outline),
